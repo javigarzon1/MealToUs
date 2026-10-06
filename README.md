@@ -10,4 +10,31 @@ Estos menus, también nos creará una lista de la compra y nos dará la opción 
 
 Tecnologias:
 
+Frontend: React, Vue,js
+Backend: Python/FastAPI
+Base de Datos: SQL
+
 Estructura:
+MealToUs/
+ README.md                 ← actualizado: flujo, tecnologías,  estructura, arranque
+  .env.example
+ docs/                     (arquitectura.md, flujo-ia.md)
+ backend/
+          ├── app/
+          ├── main.py
+          ├── core/             configuración
+          ├── db/ models/       despensa en BD
+          ├── schemas/          contratos de menús, compra y peticiones
+          ├── api/              pantry, menus, shopping
+          ├── ai/               llm_client, prompts, agent, 
+
+
+          validators
+                    ├── supermarkets/   Mercadona, Carrefour, Hipercor
+│   │   └── services/
+│   └── tests/
+└── frontend/src
+                 ├── api/
+                 ├── types/
+                 ├── pages/
+                 ├── components/
