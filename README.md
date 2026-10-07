@@ -10,11 +10,12 @@ Estos menus, también nos creará una lista de la compra y nos dará la opción 
 
 Tecnologias:
 
-Frontend: React, JS
-Backend: Python/FastAPI
+Frontend: React, TypeScript
+Backend: Python, FastAPI
 Base de Datos: SQL
 
 Estructura:
+
 MealToUs/
  README.md                 ← actualizado: flujo, tecnologías,  estructura, arranque
   .env.example
