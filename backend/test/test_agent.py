@@ -7,6 +7,7 @@ from app.schemas.requests import PlanContext
 
 class FakeLLM:
     """LLM falso para probar sin API key ni coste."""
+
     def __init__(self, replies):
         self.replies = list(replies)
         self.calls = 0
@@ -18,8 +19,12 @@ class FakeLLM:
 
 def options(ingredient: str) -> str:
     dishes = [
-        {"name": f"Plato {t}", "diet_type": t, "kcal_per_serving": 500,
-         "ingredients": [{"name": ingredient, "quantity": 100, "unit": "g"}]}
+        {
+            "name": f"Plato {t}",
+            "diet_type": t,
+            "kcal_per_serving": 500,
+            "ingredients": [{"name": ingredient, "quantity": 100, "unit": "g"}],
+        }
         for t in ("healthy", "normal", "sport")
     ]
     return "```json\n" + json.dumps({"options": dishes}) + "\n```"
