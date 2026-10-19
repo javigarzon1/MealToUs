@@ -30,8 +30,8 @@ Estructura
 
 MealToUs/
 ├── README.md
-├── CLAUDE.md               # contexto y reglas del equipo de agentes
-├── .claude/agents/         # db-endpoints y backend-python
+├── AGENTE.md               # contexto y reglas del equipo de agentes
+├── .agents/                # db-endpoints y backend-python
 ├── .env.example            # claves y configuración (copiar a .env)
 ├── docs/                   # arquitectura, flujo de la IA y equipo de agentes
 ├── backend/
