@@ -1,0 +1,55 @@
+/* ───────── Avisos ───────── */
+.notice {
+  border-radius: 12px;
+  padding: .75rem 1rem;
+  font-size: .95rem;
+  border-left: 5px solid var(--accent);
+  background: var(--surface-2);
+}
+.notice.err { background: var(--err-bg); color: var(--err); border-left-color: var(--err); }
+.notice.warn { background: var(--warn-bg); color: var(--warn); border-left-color: var(--saffron); }
+.notice.info { background: var(--surface-2); color: var(--ink); border-left-color: var(--accent); }
+
+/* ───────── Etiquetas y chips ───────── */
+.badge {
+  display: inline-block;
+  font-size: .8rem;
+  font-weight: 600;
+  padding: .12rem .65rem;
+  border-radius: 999px;
+  background: color-mix(in srgb, currentColor 13%, transparent);
+  color: var(--ink);
+}
+.badge.healthy { color: var(--healthy); }
+.badge.normal { color: var(--normal); }
+.badge.sport { color: var(--sport); }
+
+.chips { display: flex; flex-wrap: wrap; gap: .45rem; }
+.chip {
+  display: inline-flex;
+  align-items: center;
+  gap: .2rem;
+  background: var(--surface-2);
+  border-radius: 999px;
+  padding: .2rem .3rem .2rem .85rem;
+  font-size: .92rem;
+  font-weight: 500;
+}
+.chip button {
+  border: 0;
+  background: none;
+  padding: 0 .45rem;
+  font-size: 1.1rem;
+  line-height: 1;
+  color: var(--muted);
+  border-radius: 50%;
+}
+.chip button:hover:not(:disabled) { color: var(--err); }
+
+/* Los botones de "añadir rápido" dentro de .chips son más discretos */
+.chips > button {
+  padding: .3rem .85rem;
+  font-weight: 500;
+  font-size: .9rem;
+  background: var(--surface);
+}
