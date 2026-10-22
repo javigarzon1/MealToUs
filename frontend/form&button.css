@@ -1,0 +1,76 @@
+/* ───────── Formularios ───────── */
+input[type="text"], input[type="number"], textarea, select {
+  font: inherit;
+  color: var(--ink);
+  background: var(--bg);
+  border: 1.5px solid var(--line);
+  border-radius: 10px;
+  padding: .6rem .8rem;
+  min-width: 0;
+  transition: border-color .15s, box-shadow .15s;
+}
+input::placeholder, textarea::placeholder { color: var(--muted); opacity: .8; }
+input:hover, textarea:hover { border-color: color-mix(in srgb, var(--accent) 45%, var(--line)); }
+input:focus, textarea:focus, select:focus {
+  outline: none;
+  border-color: var(--accent);
+  box-shadow: 0 0 0 3px color-mix(in srgb, var(--accent) 25%, transparent);
+}
+input[type="checkbox"] {
+  width: 1.15rem;
+  height: 1.15rem;
+  accent-color: var(--accent);
+  cursor: pointer;
+  flex: none;
+}
+
+label.field { display: flex; flex-direction: column; gap: .35rem; font-weight: 600; font-size: .95rem; }
+label.field .hint { font-weight: 400; color: var(--muted); }
+
+/* ───────── Botones ───────── */
+button, .btn {
+  font: inherit;
+  font-weight: 600;
+  font-size: .95rem;
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  gap: .4rem;
+  padding: .6rem 1.15rem;
+  border-radius: 999px;
+  border: 1.5px solid var(--line);
+  background: var(--surface);
+  color: var(--ink);
+  text-decoration: none;
+  transition: transform .12s, background-color .15s, border-color .15s, box-shadow .15s;
+}
+button:hover:not(:disabled), .btn:hover { border-color: var(--accent); }
+button:active:not(:disabled) { transform: translateY(1px); }
+
+button.primary, .btn.primary {
+  background: var(--accent);
+  border-color: var(--accent);
+  color: var(--on-accent);
+  box-shadow: 0 6px 16px -8px color-mix(in srgb, var(--accent) 80%, transparent);
+}
+button.primary:hover:not(:disabled), .btn.primary:hover {
+  background: var(--accent-strong);
+  border-color: var(--accent-strong);
+}
+
+button.link {
+  border: 0;
+  background: none;
+  color: var(--muted);
+  font-weight: 500;
+  padding: .25rem .5rem;
+  text-decoration: underline;
+  text-underline-offset: .2em;
+}
+button.link:hover:not(:disabled) { color: var(--err); }
+
+button:disabled { opacity: .5; cursor: not-allowed; box-shadow: none; }
+
+:focus-visible { outline: 3px solid var(--saffron); outline-offset: 2px; }
+input:focus-visible, textarea:focus-visible { outline: none; }
+
