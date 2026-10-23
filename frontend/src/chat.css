@@ -1,0 +1,62 @@
+/* ───────── Carga ───────── */
+.spinner {
+  display: inline-block;
+  width: 1.05rem;
+  height: 1.05rem;
+  border-radius: 50%;
+  border: 2.5px solid currentColor;
+  border-right-color: transparent;
+  animation: spin .8s linear infinite;
+  flex: none;
+}
+@keyframes spin { to { transform: rotate(360deg); } }
+
+/* ───────── Chat ───────── */
+.chat-log {
+  display: flex;
+  flex-direction: column;
+  gap: .65rem;
+  min-height: 300px;
+  max-height: 58vh;
+  overflow-y: auto;
+  padding: .3rem;
+  scroll-behavior: smooth;
+}
+.bubble {
+  max-width: min(85%, 60ch);
+  padding: .7rem 1rem;
+  border-radius: 18px;
+  white-space: pre-wrap;
+}
+.bubble.user {
+  align-self: flex-end;
+  background: var(--accent);
+  color: var(--on-accent);
+  border-bottom-right-radius: 5px;
+}
+.bubble.assistant {
+  align-self: flex-start;
+  background: var(--surface-2);
+  border-bottom-left-radius: 5px;
+}
+.chat-form { display: flex; gap: .6rem; align-items: flex-end; margin-top: .9rem; }
+.chat-form textarea { flex: 1; resize: vertical; min-height: 2.9rem; border-radius: 14px; }
+
+/* ───────── Responsive y accesibilidad ───────── */
+@media (max-width: 560px) {
+  main.page { padding-top: 1.4rem; }
+  .card { padding: 1rem; border-radius: 16px; }
+  .step .label { display: none; }
+  .step { padding-right: .35rem; }
+  .step.active { padding-right: .8rem; }
+  .step.active .label { display: inline; }
+  .step.chat { padding-right: .85rem; }
+  .step.chat .label { display: inline; }
+  .dish .kcal { font-size: 2.1rem; }
+  .row.spread > button, .row.spread > .btn { flex: 1 1 auto; justify-content: center; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after { transition-duration: .01ms !important; scroll-behavior: auto !important; }
+  .spinner { animation-duration: 2.4s; }
+}
