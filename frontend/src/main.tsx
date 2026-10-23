@@ -7,7 +7,7 @@ import "../header.css";
 import "../form&button.css";
 import "../warnings&labels.css";
 import "../menu&dish.css";
-
+import "../chat.css";
 
 
 ReactDOM.createRoot(document.getElementById("root")!).render(
