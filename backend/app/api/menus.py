@@ -1,4 +1,6 @@
-from fastapi import APIRouter, Depends, HTTPException
+import logging
+
+from fastapi import APIRouter, Depends, HTTPException # pyright: ignore[reportMissingImports]
 
 from app.ai.agent import AgentError, MealAgent
 from app.api.deps import get_agent
@@ -7,14 +9,24 @@ from app.schemas.requests import (ChatRequest, DinnerRequest, PlanContext,
                                   ShoppingRequest, WeeklyPlanRequest)
 from app.schemas.shopping import ShoppingResult
 
+logger = logging.getLogger(__name__)
+
 router = APIRouter(prefix="/menus", tags=["menus"])
 
 
 def _guard(fn, *args):
+    """Convierte los fallos del agente/LLM en un 502 con un mensaje útil."""
     try:
         return fn(*args)
     except AgentError as exc:
         raise HTTPException(502, str(exc))
+    except Exception as exc:  # clave inválida, sin red, cuota agotada...
+        logger.exception("Error llamando al LLM")
+        raise HTTPException(
+            502,
+            f"Error al llamar al LLM ({type(exc).__name__}). "
+            "Revisa la API key y el proveedor en backend/.env.",
+        )
 
 
 @router.post("/lunch-options", response_model=DishOptions)
@@ -40,4 +52,4 @@ def shopping(req: ShoppingRequest, agent: MealAgent = Depends(get_agent)):
 @router.post("/chat")
 def chat(req: ChatRequest, agent: MealAgent = Depends(get_agent)):
     msgs = [m.model_dump() for m in req.messages]
-    return {"reply": agent.chat(msgs, req.context)}
+    return {"reply": _guard(agent.chat, msgs, req.context)}
