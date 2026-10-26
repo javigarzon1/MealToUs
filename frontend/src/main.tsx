@@ -2,12 +2,12 @@ import React from "react";
 import ReactDOM from "react-dom/client";
 import { BrowserRouter } from "react-router-dom";
 import App from "./App";
-import "../index.css";
-import "../header.css";
-import "../form&button.css";
-import "../warnings&labels.css";
-import "../menu&dish.css";
-import "../chat.css";
+import "../CSS/index.css";
+import "../CSS/header.css";
+import "../CSS/form&button.css";
+import "../CSS/warnings&labels.css";
+import "../CSS/menu&dish.css";
+import "../CSS/chat.css";
 
 
 ReactDOM.createRoot(document.getElementById("root")!).render(
