@@ -10,7 +10,7 @@ import Chat from "./pages/Chat";
 export default function App() {
   return (
     <>
-      <nav style={{ display: "flex", gap: 15, padding: 15, backgroundColor: "#f0f0f0" }}>
+      <nav style={{ textSizeAdjust: "14rem", display: "flex", justifyContent: "space-between", gap: 15, padding: 15, backgroundColor: "#04b4a2" }}>
         <Link to="/">Despensa</Link>
         <Link to="/preferencias">Preferencias</Link>
         <Link to="/comida">Comida</Link>
