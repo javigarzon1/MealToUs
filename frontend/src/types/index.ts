@@ -19,3 +19,7 @@ export interface Recipe {
 }
 export interface ShoppingResult { shopping_list: ShoppingItem[]; recipes: Recipe[] }
 export interface ChatMessage { role: "user" | "assistant"; content: string }
+export interface SupermarketLinks {
+  supermarket: string;
+  links: { item: string; url: string }[];
+}
