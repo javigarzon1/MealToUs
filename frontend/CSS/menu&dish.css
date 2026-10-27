@@ -1,0 +1,94 @@
+/* ───────── Listas ───────── */
+ul.clean { list-style: none; margin: 0; padding: 0; }
+ul.clean li {
+  display: flex;
+  align-items: center;
+  gap: .7rem;
+  padding: .55rem 0;
+  border-bottom: 1px dashed var(--line);
+}
+ul.clean li:last-child { border-bottom: 0; }
+ul.clean li .grow { flex: 1; }
+ul.plain { margin: .3rem 0 0; padding-left: 1.15rem; }
+ul.plain li { margin-bottom: .1rem; }
+
+.checked { text-decoration: line-through; color: var(--muted); }
+
+/* ───────── Platos: la tarjeta con "etiqueta de precio" ───────── */
+.dish {
+  --tone: var(--accent);
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  border-top: 6px solid var(--tone);
+  transition: transform .15s, box-shadow .15s;
+}
+.dish:has(.badge.healthy) { --tone: var(--healthy); }
+.dish:has(.badge.normal) { --tone: var(--normal); }
+.dish:has(.badge.sport) { --tone: var(--sport); }
+.dish:hover { transform: translateY(-2px); box-shadow: var(--shadow-lift); }
+.dish h3 { margin-top: .6rem; font-size: 1.25rem; }
+.dish .kcal {
+  font-family: var(--font-display);
+  font-weight: 800;
+  font-size: 2.5rem;
+  line-height: 1;
+  letter-spacing: -.04em;
+  color: var(--tone);
+  margin: .2rem 0 .2rem;
+}
+.dish .kcal small {
+  font-family: var(--font-body);
+  font-size: .85rem;
+  font-weight: 500;
+  letter-spacing: 0;
+  color: var(--muted);
+}
+.dish .row.end { margin-top: auto; padding-top: .4rem; }
+.dish.selected {
+  border-color: var(--saffron);
+  box-shadow: 0 0 0 3px var(--saffron), var(--shadow-lift);
+}
+
+/* ───────── Tabla del menú semanal ───────── */
+.table-wrap { overflow-x: auto; padding: .4rem .6rem; }
+table { width: 100%; border-collapse: collapse; min-width: 560px; }
+th {
+  text-align: left;
+  padding: .7rem .8rem;
+  font-size: .9rem;
+  font-weight: 600;
+  color: var(--muted);
+  border-bottom: 2px solid var(--line);
+}
+td {
+  text-align: left;
+  vertical-align: top;
+  padding: .8rem;
+  border-bottom: 1px solid var(--line);
+}
+tbody tr:last-child td { border-bottom: 0; }
+tbody tr:hover { background: color-mix(in srgb, var(--surface-2) 55%, transparent); }
+td:first-child strong { font-family: var(--font-display); font-size: 1.05rem; }
+td:last-child { font-family: var(--font-display); font-weight: 700; white-space: nowrap; }
+
+/* ───────── Recetas ───────── */
+details.recipe {
+  background: var(--surface);
+  border: 1px solid var(--line);
+  border-radius: 14px;
+  padding: .75rem 1.1rem;
+  box-shadow: var(--shadow);
+}
+details.recipe + details.recipe { margin-top: .7rem; }
+details.recipe summary {
+  cursor: pointer;
+  font-family: var(--font-display);
+  font-weight: 700;
+  font-size: 1.1rem;
+  list-style-position: outside;
+}
+details.recipe summary .muted { font-family: var(--font-body); font-weight: 400; }
+details.recipe[open] summary { margin-bottom: .2rem; }
+details.recipe ol { padding-left: 1.3rem; max-width: 68ch; }
+details.recipe ol li { margin-bottom: .45rem; padding-left: .2rem; }
