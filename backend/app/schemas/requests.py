@@ -1,3 +1,4 @@
+from typing import Optional
 from pydantic import BaseModel
 
 from app.schemas.menu import Dish, WeeklyPlan
@@ -30,4 +31,4 @@ class ChatMessage(BaseModel):
 
 class ChatRequest(BaseModel):
     messages: list[ChatMessage]
-    context: PlanContext | None = None
+    context: Optional[PlanContext] = None
