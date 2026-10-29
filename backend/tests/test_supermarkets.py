@@ -1,18 +1,4 @@
-"""Tests for supermarket links endpoint."""
-import json
-from fastapi.testclient import TestClient
-
-from app.main import app
-from app.db.session import engine, Base, get_db
-from app.models import pantry as _pantry_model  # noqa: F401
-from app.models import user_preferences as _upref_model  # noqa: F401
-from app.schemas.shopping import ShoppingItem, ShoppingResult
-
-
-# Crear tablas en memoria
-Base.metadata.create_all(bind=engine)
-
-client = TestClient(app)
+"""Tests del endpoint de enlaces de supermercado (requiere sesión)."""
 
 
 def _make_shopping_item(name, quantity, unit, category):
@@ -20,14 +6,14 @@ def _make_shopping_item(name, quantity, unit, category):
     return {"name": name, "quantity": quantity, "unit": unit, "category": category}
 
 
-def test_supermarket_links_mercadona():
+def test_supermarket_links_mercadona(auth_client):
     """Test endpoint /api/shopping/supermarket-links con Mercadona."""
     items = [
         _make_shopping_item("tomate", 1, "kg", "frutas"),
         _make_shopping_item("pollo", 2, "ud", "carnes"),
     ]
     
-    response = client.post(
+    response = auth_client.post(
         "/api/shopping/supermarket-links",
         json={"supermarket": "mercadona", "items": items}
     )
@@ -42,14 +28,14 @@ def test_supermarket_links_mercadona():
         assert "item" in link
 
 
-def test_supermarket_links_carrefour():
+def test_supermarket_links_carrefour(auth_client):
     """Test endpoint con Carrefour."""
     items = [
         _make_shopping_item("leche", 1, "litro", "lácteos"),
         _make_shopping_item("pan", 1, "unidad", "despensa"),
     ]
     
-    response = client.post(
+    response = auth_client.post(
         "/api/shopping/supermarket-links",
         json={"supermarket": "carrefour", "items": items}
     )
@@ -60,13 +46,13 @@ def test_supermarket_links_carrefour():
     assert len(data["links"]) == 2
 
 
-def test_supermarket_links_hipercor():
+def test_supermarket_links_hipercor(auth_client):
     """Test endpoint con Hipercor."""
     items = [
         _make_shopping_item("aceite", 1, "litro", "lácteos"),
     ]
     
-    response = client.post(
+    response = auth_client.post(
         "/api/shopping/supermarket-links",
         json={"supermarket": "hipercor", "items": items}
     )
@@ -77,13 +63,13 @@ def test_supermarket_links_hipercor():
     assert len(data["links"]) == 1
 
 
-def test_supermarket_links_invalid():
+def test_supermarket_links_invalid(auth_client):
     """Test endpoint con supermercado no soportado."""
     items = [
         _make_shopping_item("huevo", 1, "ud", "lácteos"),
     ]
     
-    response = client.post(
+    response = auth_client.post(
         "/api/shopping/supermarket-links",
         json={"supermarket": "amazon", "items": items}
     )
@@ -93,9 +79,9 @@ def test_supermarket_links_invalid():
     assert "Supermercado no soportado" in data["detail"]
 
 
-def test_supermarket_links_empty_items():
+def test_supermarket_links_empty_items(auth_client):
     """Test endpoint con lista de items vacía."""
-    response = client.post(
+    response = auth_client.post(
         "/api/shopping/supermarket-links",
         json={"supermarket": "mercadona", "items": []}
     )

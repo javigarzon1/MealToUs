@@ -1,119 +1,129 @@
-import { useState, useEffect } from "react";
-import { api, type PantryItem } from "../api";
+import { useState } from "react";
+import type { FormEvent } from "react";
 import { useNavigate } from "react-router-dom";
+import { api } from "../api/client";
+import { ErrorBox } from "../components/Feedback";
+import { useAction } from "../hooks/useAction";
+import { usePlan } from "../state/PlanState";
+
+const SUGGESTIONS = ["Huevos", "Leche", "Arroz", "Pasta", "Pollo", "Tomate", "Cebolla", "Patatas", "Atún", "Yogur"];
 
 export default function Pantry() {
-  const [items, setItems] = useState<PantryItem[]>([]);
-  const [newItem, setNewItem] = useState<{ name: string; quantity?: string }>({ name: "" });
+  const { state, setPantry } = usePlan();
   const navigate = useNavigate();
-  const [showDeleteConfirm, setShowDeleteConfirm] = useState<number | null>(null);
+  const [name, setName] = useState("");
+  const [quantity, setQuantity] = useState("");
 
-  useEffect(() => {
-    cargarDespensa();
-  }, []);
+  const { error, run } = useAction();
 
-  const cargarDespensa = async () => {
-    try {
-      const data = await api.listPantry();
-      setItems(data);
-    } catch (error) {
-      console.error("Error al cargar la despensa:", error);
-    }
-  };
+  async function addItem(n: string, q?: string) {
+    const clean = n.trim();
+    if (!clean) return;
+    if (state.pantry.some((p) => p.name.toLowerCase() === clean.toLowerCase())) return;
+    const created = await run(() => api.addPantryItem({ name: clean, quantity: q?.trim() || null }));
+    if (created) setPantry([...state.pantry, created]);
+  }
 
-  const manejarCambio = (e: React.ChangeEvent) => {
-    setNewItem({ ...newItem, [e.target.name]: e.target.value });
-  };
+  async function removeItem(id: number) {
+    const ok = await run(() => api.deletePantryItem(id).then(() => true));
+    if (ok) setPantry(state.pantry.filter((x) => x.id !== id));
+  }
 
-  const manejarSubmit = async (e: React.FormEvent) => {
+  async function clearAll() {
+    const ids = state.pantry.map((p) => p.id);
+    const ok = await run(() => Promise.all(ids.map((id) => api.deletePantryItem(id))).then(() => true));
+    if (ok) setPantry([]);
+  }
+
+  async function onSubmit(e: FormEvent) {
     e.preventDefault();
-    try {
-      const creado = await api.addPantryItem(newItem);
-      setItems(prev => [creado, ...prev]);
-      setNewItem({ name: "" });
-    } catch (error) {
-      console.error("Error al añadir item:", error);
-    }
-  };
-
-  const confirmarEliminar = (id: number) => setShowDeleteConfirm(id);
-
-  const manejarEliminar = async (id: number) => {
-    if (showDeleteConfirm !== id) return;
-    setShowDeleteConfirm(null);
-    try {
-      await api.deletePantryItem(id);
-      setItems(prev => prev.filter(item => item.id !== id));
-    } catch (error) {
-      console.error("Error al eliminar item:", error);
-      setShowDeleteConfirm(id); // Re-mostrar si falla
-    }
-  };
+    await addItem(name, quantity);
+    setName("");
+    setQuantity("");
+  }
 
   return (
-    <section>
-      <h2>Despensa y nevera</h2>
+    <section className="stack">
+      <div>
+        <h2>¿Qué tienes en la nevera y la despensa?</h2>
+        <p className="muted">
+          Añade los alimentos que ya tienes. La IA los aprovechará al máximo para proponerte menús.
+        </p>
+      </div>
 
-      {/* Formulario para añadir nuevo alimento */}
-      <form onSubmit={manejarSubmit} className="mb-4">
-        <div className="grid grid-cols-2 gap-2">
-          <div>
-            <label className="block text-sm font-medium mb-1">Nombre</label>
-            <input
-              type="text"
-              name="name"
-              value={newItem.name}
-              onChange={manejarCambio}
-              required
-              className="border rounded px-2 py-1"
-            />
-          </div>
-          <div>
-            <label className="block text-sm font-medium mb-1">Cantidad</label>
-            <input
-              type="text"
-              name="quantity"
-              value={newItem.quantity || ""}
-              onChange={manejarCambio}
-              placeholder="ej: 6 huevos, 500 g"
-              className="border rounded px-2 py-1"
-            />
-          </div>
-        </div>
-        <button
-          type="submit"
-          className="mt-2 rounded bg-primary px-4 py-1 text-white"
-        >
-          Añadir a la despensa
+      <form className="card row" onSubmit={onSubmit}>
+        <label className="field" style={{ flex: "2 1 200px" }}>
+          Alimento
+          <input
+            type="text"
+            value={name}
+            onChange={(e) => setName(e.target.value)}
+            placeholder="p. ej. Huevos"
+          />
+        </label>
+        <label className="field" style={{ flex: "1 1 140px" }}>
+          Cantidad <span className="hint">(opcional)</span>
+          <input
+            type="text"
+            value={quantity}
+            onChange={(e) => setQuantity(e.target.value)}
+            placeholder="p. ej. 6 unidades"
+          />
+        </label>
+        <button className="primary" type="submit" style={{ alignSelf: "end" }} disabled={!name.trim()}>
+          Añadir
         </button>
       </form>
 
-      {/* Lista de items de la despensa */}
       <div>
-        {items.length === 0 && (
-          <p className="text-muted-foreground">La despensa está vacía</p>
-        )}
-        <ul className="space-y-1">
-          {items.map((item) => (
-            <li key={item.id} className="flex items-center justify-between p-2 border rounded">
-              <span>
-                {item.name}{item.quantity ? ` • {item.quantity}` : ""}
-              </span>
-              <div className="flex items-center gap-2">
-                <button
-                  onClick={() => confirmarEliminar(item.id)}
-                  className="text-red-500 hover:text-red-800 text-sm"
-                  title="Eliminar"
-                >
-                  🗑️
-                </button>
-                <span className="text-xs text-muted-foreground">
-                  {item.id}
-                </span>
-              </div>
-            </li>
+        <p className="small muted">Añadir rápido:</p>
+        <div className="chips">
+          {SUGGESTIONS.filter((s) => !state.pantry.some((p) => p.name.toLowerCase() === s.toLowerCase())).map((s) => (
+            <button key={s} type="button" onClick={() => void addItem(s)}>
+              + {s}
+            </button>
           ))}
-        </ul>
+        </div>
+      </div>
+
+      <ErrorBox message={error} />
+
+      <div className="card">
+        <div className="row spread">
+          <h3>Tu despensa ({state.pantry.length})</h3>
+          {state.pantry.length > 0 && (
+            <button className="link" onClick={() => void clearAll()}>
+              Vaciar
+            </button>
+          )}
+        </div>
+        {state.pantry.length === 0 ? (
+          <p className="muted">Todavía no has añadido nada.</p>
+        ) : (
+          <ul className="clean">
+            {state.pantry.map((p) => (
+              <li key={p.id}>
+                <span className="grow">
+                  <strong>{p.name}</strong>
+                  {p.quantity && <span className="muted"> · {p.quantity}</span>}
+                </span>
+                <button
+                  className="link"
+                  aria-label={`Quitar ${p.name}`}
+                  onClick={() => void removeItem(p.id)}
+                >
+                  Quitar
+                </button>
+              </li>
+            ))}
+          </ul>
+        )}
+      </div>
+
+      <div className="row end">
+        <button className="primary" disabled={state.pantry.length === 0} onClick={() => navigate("/preferencias")}>
+          Siguiente: preferencias →
+        </button>
       </div>
     </section>
   );

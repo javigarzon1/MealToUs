@@ -1,173 +1,105 @@
-import { useState, useEffect } from "react";
-import { api, type UserPreferences } from "../api";
+import { useState } from "react";
+import { useNavigate } from "react-router-dom";
+import { api } from "../api/client";
+import { ErrorBox } from "../components/Feedback";
+import TagInput from "../components/TagInput";
+import { useAction } from "../hooks/useAction";
+import { usePlan } from "../state/PlanState";
+import type { UserPreferences } from "../types";
 
 export default function Preferences() {
-  const [prefs, setPrefs] = useState<UserPreferences>({
-    people: 1,
-    allergies: [],
-    intolerances: [],
-    dislikes: [],
-  });
-  const [showAlert, setShowAlert] = useState<{ open: boolean; message: string }>({ open: false, message: "" });
+  const { state, setPreferences } = usePlan();
+  const navigate = useNavigate();
+  const [draft, setDraft] = useState<UserPreferences | null>(null);
+  const [saved, setSaved] = useState(false);
+  const { loading, error, run } = useAction();
+  // Se edita una copia y se guarda en el servidor con el botón
+  const prefs = draft ?? state.preferences;
 
-  useEffect(() => {
-    cargarPreferencias();
-  }, []);
+  function change(next: UserPreferences) {
+    setDraft(next);
+    setSaved(false);
+  }
 
-  const cargarPreferencias = async () => {
-    try {
-      const data = await api.getPreferences();
-      setPrefs(data);
-    } catch (error) {
-      console.error("Error al cargar preferencias:", error);
-      setShowAlert({ open: true, message: "Error al cargar preferencias" });
-    }
-  };
-
-  const handlePeopleChange = (e: React.ChangeEvent) => {
-    const value = Number(e.target.value);
-    if (value >= 1 && value <= 20) {
-      setPrefs({ ...prefs, people: value });
-    }
-  };
-
-  const addAllergy = (e: React.KeyboardEvent) => {
-    if (e.key !== "Enter") return;
-    const input = (e.target as HTMLInputElement);
-    const term = input.value.trim();
-    if (term) {
-      setPrefs({ ...prefs, allergies: [...prefs.allergies, term] });
-      input.value = "";
-    }
-  };
-
-  const addIntolerance = (e: React.KeyboardEvent) => {
-    if (e.key !== "Enter") return;
-    const input = (e.target as HTMLInputElement);
-    const term = input.value.trim();
-    if (term) {
-      setPrefs({ ...prefs, intolerances: [...prefs.intolerances, term] });
-      input.value = "";
-    }
-  };
-
-  const addDislike = (e: React.KeyboardEvent) => {
-    if (e.key !== "Enter") return;
-    const input = (e.target as HTMLInputElement);
-    const term = input.value.trim();
-    if (term) {
-      setPrefs({ ...prefs, dislikes: [...prefs.dislikes, term] });
-      input.value = "";
-    }
-  };
-
-  const guardarPreferencias = async () => {
-    try {
-      const actualizado = await api.savePreferences(prefs);
-      setPrefs(actualizado);
-      setShowAlert({ open: true, message: "Preferencias guardadas correctamente" });
-    } catch (error) {
-      console.error("Error al guardar preferencias:", error);
-      setShowAlert({ open: true, message: "Error al guardar preferencias" });
-    }
-  };
+  async function save(): Promise<boolean> {
+    if (!draft) return true;
+    const res = await run(() => api.savePreferences(draft));
+    if (!res) return false;
+    setPreferences(res);
+    setDraft(null);
+    setSaved(true);
+    return true;
+  }
 
   return (
-    <section>
-      <h2>Preferencias (personas, alergias, intolerancias, no me gusta)</h2>
+    <section className="stack">
+      <div>
+        <h2>Preferencias</h2>
+        <p className="muted">
+          Cuántas personas comen y qué debe evitar la IA. Alergias e intolerancias se tratan como
+          restricciones estrictas.
+        </p>
+      </div>
 
-      {/* Formulario de preferencias */}
-      <div className="grid grid-cols-2 gap-4 mb-6">
-        <div>
-          <label className="block text-sm font-medium mb-1">Número de personas</label>
+      <div className="card stack">
+        <label className="field" style={{ maxWidth: 220 }}>
+          Número de personas
           <input
             type="number"
-            min="1"
-            max="20"
+            min={1}
+            max={20}
             value={prefs.people}
-            onChange={handlePeopleChange}
-            className="border rounded px-2 py-1 w-full"
-            required
-          />
-        </div>
-
-        <div>
-          <label className="block text-sm font-medium mb-1">Alergias (separadas por coma)</label>
-          <input
-            type="text"
-            value={prefs.allergies.join(", ")}
             onChange={(e) => {
-              const values = e.target.value
-                .split(",")
-                .map((s: string) => s.trim())
-                .filter((s: string) => s.length > 0);
-              setPrefs({ ...prefs, allergies: values });
+              const n = Math.min(20, Math.max(1, Number(e.target.value) || 1));
+              change({ ...prefs, people: n });
             }}
-            className="border rounded px-2 py-1 w-full"
-            placeholder="ej: nuez, marisco, lácteos"
           />
-        </div>
+        </label>
+
+        <TagInput
+          label="Alergias"
+          hint="(Enter o coma para añadir)"
+          placeholder="p. ej. cacahuete"
+          values={prefs.allergies}
+          onChange={(allergies) => change({ ...prefs, allergies })}
+        />
+        <TagInput
+          label="Intolerancias"
+          placeholder="p. ej. lactosa, gluten"
+          values={prefs.intolerances}
+          onChange={(intolerances) => change({ ...prefs, intolerances })}
+        />
+        <TagInput
+          label="Alimentos que no te gustan"
+          placeholder="p. ej. coliflor"
+          values={prefs.dislikes}
+          onChange={(dislikes) => change({ ...prefs, dislikes })}
+        />
       </div>
 
-      <div className="grid grid-cols-2 gap-4 mb-6">
-        <div>
-          <label className="block text-sm font-medium mb-1">Intolerancias</label>
-          <input
-            type="text"
-            value={prefs.intolerances.join(", ")}
-            onChange={(e) => {
-              const values = e.target.value
-                .split(",")
-                .map((s: string) => s.trim())
-                .filter((s: string) => s.length > 0);
-              setPrefs({ ...prefs, intolerances: values });
-            }}
-            className="border rounded px-2 py-1 w-full"
-            placeholder="ej: gluten, lacteos"
-          />
-        </div>
+      <p className="small muted">
+        Aviso: las calorías son estimaciones generadas por IA y no sustituyen el consejo de un dietista o
+        médico. Revisa siempre las etiquetas de los productos si tienes alergias.
+      </p>
 
-        <div>
-          <label className="block text-sm font-medium mb-1">No me gusta</label>
-          <input
-            type="text"
-            value={prefs.dislikes.join(", ")}
-            onChange={(e) => {
-              const values = e.target.value
-                .split(",")
-                .map((s: string) => s.trim())
-                .filter((s: string) => s.length > 0);
-              setPrefs({ ...prefs, dislikes: values });
-            }}
-            className="border rounded px-2 py-1 w-full"
-            placeholder="ej: espinacas, cebolla"
-          />
-        </div>
-      </div>
+      <ErrorBox message={error} />
+      {saved && <p className="notice info">Preferencias guardadas.</p>}
 
-      {/* Botones de acción */}
-      <div className="mt-6">
-        <button
-          onClick={guardarPreferencias}
-          className="rounded bg-primary px-4 py-1 text-white mr-2"
-        >
-          Guardar preferencias
+      <div className="row spread">
+        <button onClick={() => navigate("/")}>← Despensa</button>
+        <button disabled={loading || !draft} onClick={() => void save()}>
+          Guardar
         </button>
-
         <button
-          onClick={() => navigate("/")}
-          className="rounded border px-4 py-1"
+          className="primary"
+          disabled={loading}
+          onClick={async () => {
+            if (await save()) navigate("/comida");
+          }}
         >
-          Cancelar
+          Siguiente: comida →
         </button>
       </div>
-
-      {/* Alerta de éxito/error */}
-      {showAlert.open && (
-          <div className="mt-4 p-3 rounded bg-green-100 text-green-800">
-            {showAlert.message}
-          </div>
-        )}
     </section>
   );
 }

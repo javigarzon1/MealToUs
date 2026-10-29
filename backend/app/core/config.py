@@ -13,10 +13,15 @@ class Settings(BaseSettings):
     anthropic_api_key: str = ""
     openai_api_key: str = ""
 
-    # JWT Configuration
-    secret_key: str = "your-secret-key-change-this-in-production"  # noqa: F811
-    algorithm: str = "HS256"
-    access_token_expire_minutes: int = 30
+    # --- Autenticación ---
+    # Clave para firmar las sesiones. Genera una con:
+    #   python -c "import secrets; print(secrets.token_urlsafe(48))"
+    # Si está vacía se usa una temporal (las sesiones se pierden al reiniciar).
+    secret_key: str = ""
+    token_days: int = 7                    # duración de la sesión
+    cookie_name: str = "mealtous_session"
+    cookie_secure: bool = False            # True cuando se sirva por HTTPS propio
+    allow_registration: bool = True        # False para cerrar el alta de usuarios
 
 
 settings = Settings()
