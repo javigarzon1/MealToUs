@@ -9,17 +9,45 @@ import Chat from "./pages/Chat";
 
 export default function App() {
   return (
-    <>
-      <nav style={{ display: "flex", gap: 12, padding: 12 }}>
-        <Link to="/">Despensa</Link>
-        <Link to="/preferencias">Preferencias</Link>
-        <Link to="/comida">Comida</Link>
-        <Link to="/cena">Cena</Link>
-        <Link to="/semana">Semana</Link>
-        <Link to="/compra">Compra</Link>
-        <Link to="/chat">Asistente</Link>
-      </nav>
-      <main style={{ padding: 16 }}>
+    <div className="app-container">
+      <header className="app-header">
+        <div className="header-brand">
+          <span className="brand-icon">🍽️</span>
+          <h1>MealToUs</h1>
+          <span className="brand-subtitle">Come sano ahorrando</span>
+        </div>
+        <nav className="app-nav">
+          <Link to="/" className="nav-link">
+            <span className="nav-icon">🧊</span>
+            <span className="nav-text">Despensa</span>
+          </Link>
+          <Link to="/preferencias" className="nav-link">
+            <span className="nav-icon">⚙️</span>
+            <span className="nav-text">Preferencias</span>
+          </Link>
+          <Link to="/comida" className="nav-link">
+            <span className="nav-icon">🥗</span>
+            <span className="nav-text">Comida</span>
+          </Link>
+          <Link to="/cena" className="nav-link">
+            <span className="nav-icon">🍽️</span>
+            <span className="nav-text">Cena</span>
+          </Link>
+          <Link to="/semana" className="nav-link">
+            <span className="nav-icon">📅</span>
+            <span className="nav-text">Semana</span>
+          </Link>
+          <Link to="/compra" className="nav-link">
+            <span className="nav-icon">🛒</span>
+            <span className="nav-text">Compra</span>
+          </Link>
+          <Link to="/chat" className="nav-link">
+            <span className="nav-icon">💬</span>
+            <span className="nav-text">Asistente</span>
+          </Link>
+        </nav>
+      </header>
+      <main className="app-main">
         <Routes>
           <Route path="/" element={<Pantry />} />
           <Route path="/preferencias" element={<Preferences />} />
@@ -30,6 +58,9 @@ export default function App() {
           <Route path="/chat" element={<Chat />} />
         </Routes>
       </main>
-    </>
+      <footer className="app-footer">
+        <p>MealToUs · Come sano ahorrando · Powered by IA</p>
+      </footer>
+    </div>
   );
 }
