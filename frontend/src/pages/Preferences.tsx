@@ -1,5 +1,6 @@
 import { useState, useEffect } from "react";
-import { api, type UserPreferences } from "../api";
+import { api } from "../api";
+import type { UserPreferences } from "../types";
 
 export default function Preferences() {
   const [prefs, setPrefs] = useState<UserPreferences>({
@@ -68,15 +69,15 @@ export default function Preferences() {
   };
 
   const removeAllergy = (index: number) => {
-    setPrefs({ ...prefs, allergies: prefs.allergies.filter((_, i) => i !== index) });
+    setPrefs({ ...prefs, allergies: prefs.allergies.filter((_: string, i: number) => i !== index) });
   };
 
   const removeIntolerance = (index: number) => {
-    setPrefs({ ...prefs, intolerances: prefs.intolerances.filter((_, i) => i !== index) });
+    setPrefs({ ...prefs, intolerances: prefs.intolerances.filter((_: string, i: number) => i !== index) });
   };
 
   const removeDislike = (index: number) => {
-    setPrefs({ ...prefs, dislikes: prefs.dislikes.filter((_, i) => i !== index) });
+    setPrefs({ ...prefs, dislikes: prefs.dislikes.filter((_: string, i: number) => i !== index) });
   };
 
   return (
@@ -138,7 +139,7 @@ export default function Preferences() {
               </div>
             </div>
             <div className="tag-list">
-              {prefs.allergies.map((allergy, index) => (
+              {prefs.allergies.map((allergy: string, index: number) => (
                 <span key={index} className="tag">
                   {allergy}
                   <span className="tag-remove" onClick={() => removeAllergy(index)}>×</span>
@@ -169,7 +170,7 @@ export default function Preferences() {
               </div>
             </div>
             <div className="tag-list">
-              {prefs.intolerances.map((intolerance, index) => (
+              {prefs.intolerances.map((intolerance: string, index: number) => (
                 <span key={index} className="tag">
                   {intolerance}
                   <span className="tag-remove" onClick={() => removeIntolerance(index)}>×</span>
@@ -200,7 +201,7 @@ export default function Preferences() {
               </div>
             </div>
             <div className="tag-list">
-              {prefs.dislikes.map((dislike, index) => (
+              {prefs.dislikes.map((dislike: string, index: number) => (
                 <span key={index} className="tag">
                   {dislike}
                   <span className="tag-remove" onClick={() => removeDislike(index)}>×</span>

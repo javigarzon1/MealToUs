@@ -1,5 +1,6 @@
 import { useState, useEffect } from "react";
-import { api, type PantryItem } from "../api";
+import { api } from "../api";
+import type { PantryItem } from "../types";
 
 export default function Pantry() {
   const [items, setItems] = useState<PantryItem[]>([]);
@@ -122,7 +123,7 @@ export default function Pantry() {
                 </div>
                 <div className="item-actions">
                   <button
-                    onClick={() => manejarEliminar(item.id)}
+                    onClick={() => item.id && manejarEliminar(item.id)}
                     className="btn btn-danger btn-sm"
                     title="Eliminar"
                   >

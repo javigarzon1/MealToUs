@@ -30,6 +30,20 @@ async function del(path: string): Promise<void> {
 // POST /api/pantry/  body: { name: string, quantity?: string }
 // DELETE /api/pantry/{item_id}
 
+// Auth endpoints
+export const auth = {
+  login: (data: { email: string; password: string }) =>
+    post<{ access_token: string; token_type: string; expires_in: number }>("/auth/login", data),
+  register: (data: { email: string; full_name?: string; password: string }) =>
+    post<{ id: number; email: string; full_name?: string; is_active: boolean; is_superuser: boolean }>("/auth/register", data),
+  forgotPassword: (email: string) =>
+    post<{ message: string }>("/auth/forgot-password", { email }),
+  resetPassword: (token: string, newPassword: string) =>
+    post<{ message: string }>("/auth/reset-password", { token, new_password: newPassword }),
+  me: () => get<{ id: number; email: string; full_name?: string; is_active: boolean; is_superuser: boolean }>("/auth/me"),
+  logout: () => post<{ message: string }>("/auth/logout", {}),
+};
+
 export const api = {
   // Pantry endpoints
   listPantry: () => get<PantryItem[]>("/pantry/"),

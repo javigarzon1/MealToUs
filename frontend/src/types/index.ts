@@ -7,7 +7,7 @@ export interface Dish {
 export interface DishOptions { options: Dish[] }
 export interface DayPlan { day: string; lunch: Dish; dinner: Dish }
 export interface WeeklyPlan { diet_type: DietType; target_kcal_per_day: number; days: DayPlan[] }
-export interface PantryItem { name: string; quantity?: string | null }
+export interface PantryItem { id?: number; name: string; quantity?: string | null }
 export interface UserPreferences {
   people: number; allergies: string[]; intolerances: string[]; dislikes: string[];
 }
