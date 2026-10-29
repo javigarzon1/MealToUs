@@ -1,4 +1,5 @@
 import json
+from typing import Optional
 
 from pydantic import BaseModel
 
@@ -27,7 +28,7 @@ def extract_json(raw: str) -> dict:
 class MealAgent:
     MAX_RETRIES = 2
 
-    def __init__(self, llm: LLMClient | None = None) -> None:
+    def __init__(self, llm: Optional[LLMClient] = None) -> None:
         self.llm = llm or get_llm_client()
 
     # ---- núcleo: pedir JSON, validar esquema + restricciones, reintentar con feedback ----
@@ -86,7 +87,7 @@ class MealAgent:
         payload = {**self._base(ctx.pantry, ctx.preferences), "menu": plan.model_dump(mode="json")}
         return self._run(task, payload, ShoppingResult, ctx.preferences, max_tokens=8000)
 
-    def chat(self, messages: list[dict], context: PlanContext | None = None) -> str:
+    def chat(self, messages: list[dict], context: Optional[PlanContext] = None) -> str:
         system = prompts.CHAT_SYSTEM_PROMPT
         if context:
             system += "\n\nContexto del usuario:\n" + context.model_dump_json()

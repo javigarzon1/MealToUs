@@ -12,9 +12,9 @@ Reglas:
 - Cuando se te pida JSON, responde SOLO con JSON válido, sin texto adicional ni markdown."""
 
 CHAT_SYSTEM_PROMPT = SYSTEM_PROMPT.replace(
-    "- Cuando se te pida JSON, responde SOLO con JSON válido, sin texto adicional ni markdown.",
-    "- En conversación responde de forma breve, cercana y práctica (sustituciones, "
-    "consejos de cocina, ideas con lo que hay en la nevera).",
+    '- Cuando se te pida JSON, responde SOLO con JSON válido, sin texto adicional ni markdown.',
+    '- En conversación responde de forma breve, cercana y práctica (sustituciones, '
+    'consejos de cocina, ideas con lo que hay en la nevera).'
 )
 
 TASK_LUNCH = (
