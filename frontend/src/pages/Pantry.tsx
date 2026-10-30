@@ -1,140 +1,130 @@
-import { useState, useEffect } from "react";
-import { api } from "../api";
-import type { PantryItem } from "../types";
+import { useState } from "react";
+import type { FormEvent } from "react";
+import { useNavigate } from "react-router-dom";
+import { api } from "../api/client";
+import { ErrorBox } from "../components/Feedback";
+import { useAction } from "../hooks/useAction";
+import { usePlan } from "../state/PlanState";
+
+const SUGGESTIONS = ["Huevos", "Leche", "Arroz", "Pasta", "Pollo", "Tomate", "Cebolla", "Patatas", "Atún", "Yogur"];
 
 export default function Pantry() {
-  const [items, setItems] = useState<PantryItem[]>([]);
-  const [newItem, setNewItem] = useState<{ name: string; quantity?: string }>({ name: "" });
-  const [loading, setLoading] = useState(true);
-  const [showAlert, setShowAlert] = useState<{ open: boolean; message: string; type: "success" | "error" }>({ open: false, message: "", type: "success" });
+  const { state, setPantry } = usePlan();
+  const navigate = useNavigate();
+  const [name, setName] = useState("");
+  const [quantity, setQuantity] = useState("");
 
-  useEffect(() => {
-    cargarDespensa();
-  }, []);
+  const { error, run } = useAction();
 
-  const cargarDespensa = async () => {
-    setLoading(true);
-    try {
-      const data = await api.listPantry();
-      setItems(data);
-    } catch (error) {
-      console.error("Error al cargar la despensa:", error);
-      setShowAlert({ open: true, message: "Error al cargar la despensa", type: "error" });
-    } finally {
-      setLoading(false);
-    }
-  };
+  async function addItem(n: string, q?: string) {
+    const clean = n.trim();
+    if (!clean) return;
+    if (state.pantry.some((p) => p.name.toLowerCase() === clean.toLowerCase())) return;
+    const created = await run(() => api.addPantryItem({ name: clean, quantity: q?.trim() || null }));
+    if (created) setPantry([...state.pantry, created]);
+  }
 
-  const manejarCambio = (e: React.ChangeEvent<HTMLInputElement>) => {
-    setNewItem({ ...newItem, [e.target.name]: e.target.value });
-  };
+  async function removeItem(id: number) {
+    const ok = await run(() => api.deletePantryItem(id).then(() => true));
+    if (ok) setPantry(state.pantry.filter((x) => x.id !== id));
+  }
 
-  const manejarSubmit = async (e: React.FormEvent) => {
+  async function clearAll() {
+    const ids = state.pantry.map((p) => p.id);
+    const ok = await run(() => Promise.all(ids.map((id) => api.deletePantryItem(id))).then(() => true));
+    if (ok) setPantry([]);
+  }
+
+  async function onSubmit(e: FormEvent) {
     e.preventDefault();
-    if (!newItem.name.trim()) return;
-    try {
-      const creado = await api.addPantryItem(newItem);
-      setItems(prev => [creado, ...prev]);
-      setNewItem({ name: "" });
-      setShowAlert({ open: true, message: "Alimento añadido correctamente", type: "success" });
-      setTimeout(() => setShowAlert({ open: false, message: "", type: "success" }), 3000);
-    } catch (error) {
-      console.error("Error al añadir item:", error);
-      setShowAlert({ open: true, message: "Error al añadir el alimento", type: "error" });
-    }
-  };
-
-  const manejarEliminar = async (id: number) => {
-    try {
-      await api.deletePantryItem(id);
-      setItems(prev => prev.filter(item => item.id !== id));
-      setShowAlert({ open: true, message: "Alimento eliminado", type: "success" });
-      setTimeout(() => setShowAlert({ open: false, message: "", type: "success" }), 2000);
-    } catch (error) {
-      console.error("Error al eliminar item:", error);
-      setShowAlert({ open: true, message: "Error al eliminar el alimento", type: "error" });
-    }
-  };
+    await addItem(name, quantity);
+    setName("");
+    setQuantity("");
+  }
 
   return (
-    <div className="page-container">
-      <div className="page-header">
-        <h1>🧊 Despensa y nevera</h1>
-        <p className="page-subtitle">Gestiona los alimentos que tienes disponibles</p>
+    <section className="stack">
+      <div>
+        <h2>¿Qué tienes en la nevera y la despensa?</h2>
+        <p className="muted">
+          Añade los alimentos que ya tienes. La IA los aprovechará al máximo para proponerte menús.
+        </p>
       </div>
 
-      {showAlert.open && (
-        <div className={`alert alert-${showAlert.type}`}>
-          {showAlert.message}
+      <form className="card row" onSubmit={onSubmit}>
+        <label className="field" style={{ flex: "2 1 200px" }}>
+          Alimento
+          <input
+            type="text"
+            value={name}
+            onChange={(e) => setName(e.target.value)}
+            placeholder="p. ej. Huevos"
+          />
+        </label>
+        <label className="field" style={{ flex: "1 1 140px" }}>
+          Cantidad <span className="hint">(opcional)</span>
+          <input
+            type="text"
+            value={quantity}
+            onChange={(e) => setQuantity(e.target.value)}
+            placeholder="p. ej. 6 unidades"
+          />
+        </label>
+        <button className="primary" type="submit" style={{ alignSelf: "end" }} disabled={!name.trim()}>
+          Añadir
+        </button>
+      </form>
+
+      <div>
+        <p className="small muted">Añadir rápido:</p>
+        <div className="chips">
+          {SUGGESTIONS.filter((s) => !state.pantry.some((p) => p.name.toLowerCase() === s.toLowerCase())).map((s) => (
+            <button key={s} type="button" onClick={() => void addItem(s)}>
+              + {s}
+            </button>
+          ))}
         </div>
-      )}
-
-      <div className="card">
-        <h2 className="card-title">➕ Añadir nuevo alimento</h2>
-        <form onSubmit={manejarSubmit}>
-          <div className="form-row">
-            <div className="form-group">
-              <label>Nombre del alimento</label>
-              <input
-                type="text"
-                name="name"
-                value={newItem.name}
-                onChange={manejarCambio}
-                placeholder="Ej: huevos, tomates, leche..."
-                required
-              />
-            </div>
-            <div className="form-group">
-              <label>Cantidad (texto libre)</label>
-              <input
-                type="text"
-                name="quantity"
-                value={newItem.quantity || ""}
-                onChange={manejarCambio}
-                placeholder="Ej: 6 huevos, 500 g, 1 paquete"
-              />
-            </div>
-          </div>
-          <button type="submit" className="btn btn-primary">
-            Añadir a la despensa
-          </button>
-        </form>
       </div>
 
+      <ErrorBox message={error} />
+
       <div className="card">
-        <h2 className="card-title">📋 Tu despensa ({items.length} items)</h2>
-        {loading ? (
-          <div className="loading">Cargando despensa...</div>
-        ) : items.length === 0 ? (
-          <div className="empty-state">
-            <div className="empty-state-icon">🧊</div>
-            <p>Tu despensa está vacía</p>
-            <p className="text-muted">Añade algunos alimentos para empezar</p>
-          </div>
+        <div className="row spread">
+          <h3>Tu despensa ({state.pantry.length})</h3>
+          {state.pantry.length > 0 && (
+            <button className="link" onClick={() => void clearAll()}>
+              Vaciar
+            </button>
+          )}
+        </div>
+        {state.pantry.length === 0 ? (
+          <p className="muted">Todavía no has añadido nada.</p>
         ) : (
-          <ul className="item-list">
-            {items.map((item) => (
-              <li key={item.id} className="item-card">
-                <div className="item-info">
-                  <span className="item-name">{item.name}</span>
-                  {item.quantity && (
-                    <span className="item-quantity">{item.quantity}</span>
-                  )}
-                </div>
-                <div className="item-actions">
-                  <button
-                    onClick={() => item.id && manejarEliminar(item.id)}
-                    className="btn btn-danger btn-sm"
-                    title="Eliminar"
-                  >
-                    🗑️
-                  </button>
-                </div>
+          <ul className="clean">
+            {state.pantry.map((p) => (
+              <li key={p.id}>
+                <span className="grow">
+                  <strong>{p.name}</strong>
+                  {p.quantity && <span className="muted"> · {p.quantity}</span>}
+                </span>
+                <button
+                  className="link"
+                  aria-label={`Quitar ${p.name}`}
+                  onClick={() => void removeItem(p.id)}
+                >
+                  Quitar
+                </button>
               </li>
             ))}
           </ul>
         )}
       </div>
-    </div>
+
+      <div className="row end">
+        <button className="primary" disabled={state.pantry.length === 0} onClick={() => navigate("/preferencias")}>
+          Siguiente: preferencias →
+        </button>
+      </div>
+    </section>
   );
 }

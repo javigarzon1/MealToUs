@@ -7,7 +7,8 @@ export interface Dish {
 export interface DishOptions { options: Dish[] }
 export interface DayPlan { day: string; lunch: Dish; dinner: Dish }
 export interface WeeklyPlan { diet_type: DietType; target_kcal_per_day: number; days: DayPlan[] }
-export interface PantryItem { id?: number; name: string; quantity?: string | null }
+export interface PantryItem { name: string; quantity?: string | null }
+export interface PantryItemOut extends PantryItem { id: number }
 export interface UserPreferences {
   people: number; allergies: string[]; intolerances: string[]; dislikes: string[];
 }
@@ -19,3 +20,9 @@ export interface Recipe {
 }
 export interface ShoppingResult { shopping_list: ShoppingItem[]; recipes: Recipe[] }
 export interface ChatMessage { role: "user" | "assistant"; content: string }
+
+export interface SupermarketLinks {
+  supermarket: string;
+  links: { item: string; url: string }[];
+}
+export interface AuthUser { id: number; email: string; full_name?: string | null }

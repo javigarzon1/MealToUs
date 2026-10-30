@@ -1,226 +1,105 @@
-import { useState, useEffect } from "react";
-import { api } from "../api";
+import { useState } from "react";
+import { useNavigate } from "react-router-dom";
+import { api } from "../api/client";
+import { ErrorBox } from "../components/Feedback";
+import TagInput from "../components/TagInput";
+import { useAction } from "../hooks/useAction";
+import { usePlan } from "../state/PlanState";
 import type { UserPreferences } from "../types";
 
 export default function Preferences() {
-  const [prefs, setPrefs] = useState<UserPreferences>({
-    people: 1,
-    allergies: [],
-    intolerances: [],
-    dislikes: [],
-  });
-  const [newAllergy, setNewAllergy] = useState("");
-  const [newIntolerance, setNewIntolerance] = useState("");
-  const [newDislike, setNewDislike] = useState("");
-  const [loading, setLoading] = useState(true);
-  const [showAlert, setShowAlert] = useState<{ open: boolean; message: string; type: "success" | "error" }>({ open: false, message: "", type: "success" });
+  const { state, setPreferences } = usePlan();
+  const navigate = useNavigate();
+  const [draft, setDraft] = useState<UserPreferences | null>(null);
+  const [saved, setSaved] = useState(false);
+  const { loading, error, run } = useAction();
+  // Se edita una copia y se guarda en el servidor con el botón
+  const prefs = draft ?? state.preferences;
 
-  useEffect(() => {
-    cargarPreferencias();
-  }, []);
+  function change(next: UserPreferences) {
+    setDraft(next);
+    setSaved(false);
+  }
 
-  const cargarPreferencias = async () => {
-    setLoading(true);
-    try {
-      const data = await api.getPreferences();
-      setPrefs(data);
-    } catch (error) {
-      console.error("Error al cargar preferencias:", error);
-      setShowAlert({ open: true, message: "Error al cargar preferencias", type: "error" });
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  const guardarPreferencias = async () => {
-    try {
-      const actualizado = await api.savePreferences(prefs);
-      setPrefs(actualizado);
-      setShowAlert({ open: true, message: "Preferencias guardadas correctamente", type: "success" });
-      setTimeout(() => setShowAlert({ open: false, message: "", type: "success" }), 3000);
-    } catch (error) {
-      console.error("Error al guardar preferencias:", error);
-      setShowAlert({ open: true, message: "Error al guardar preferencias", type: "error" });
-    }
-  };
-
-  const addAllergy = () => {
-    const term = newAllergy.trim();
-    if (term) {
-      setPrefs({ ...prefs, allergies: [...prefs.allergies, term] });
-      setNewAllergy("");
-    }
-  };
-
-  const addIntolerance = () => {
-    const term = newIntolerance.trim();
-    if (term) {
-      setPrefs({ ...prefs, intolerances: [...prefs.intolerances, term] });
-      setNewIntolerance("");
-    }
-  };
-
-  const addDislike = () => {
-    const term = newDislike.trim();
-    if (term) {
-      setPrefs({ ...prefs, dislikes: [...prefs.dislikes, term] });
-      setNewDislike("");
-    }
-  };
-
-  const removeAllergy = (index: number) => {
-    setPrefs({ ...prefs, allergies: prefs.allergies.filter((_: string, i: number) => i !== index) });
-  };
-
-  const removeIntolerance = (index: number) => {
-    setPrefs({ ...prefs, intolerances: prefs.intolerances.filter((_: string, i: number) => i !== index) });
-  };
-
-  const removeDislike = (index: number) => {
-    setPrefs({ ...prefs, dislikes: prefs.dislikes.filter((_: string, i: number) => i !== index) });
-  };
+  async function save(): Promise<boolean> {
+    if (!draft) return true;
+    const res = await run(() => api.savePreferences(draft));
+    if (!res) return false;
+    setPreferences(res);
+    setDraft(null);
+    setSaved(true);
+    return true;
+  }
 
   return (
-    <div className="page-container">
-      <div className="page-header">
-        <h1>⚙️ Preferencias</h1>
-        <p className="page-subtitle">Configura tus preferencias para personalizar los menús</p>
+    <section className="stack">
+      <div>
+        <h2>Preferencias</h2>
+        <p className="muted">
+          Cuántas personas comen y qué debe evitar la IA. Alergias e intolerancias se tratan como
+          restricciones estrictas.
+        </p>
       </div>
 
-      {showAlert.open && (
-        <div className={`alert alert-${showAlert.type}`}>
-          {showAlert.message}
-        </div>
-      )}
+      <div className="card stack">
+        <label className="field" style={{ maxWidth: 220 }}>
+          Número de personas
+          <input
+            type="number"
+            min={1}
+            max={20}
+            value={prefs.people}
+            onChange={(e) => {
+              const n = Math.min(20, Math.max(1, Number(e.target.value) || 1));
+              change({ ...prefs, people: n });
+            }}
+          />
+        </label>
 
-      {loading ? (
-        <div className="loading">Cargando preferencias...</div>
-      ) : (
-        <>
-          {/* Número de personas */}
-          <div className="card">
-            <h2 className="card-title">👥 Personas</h2>
-            <div className="form-group">
-              <label>Número de comensales</label>
-              <input
-                type="number"
-                min="1"
-                max="20"
-                value={prefs.people}
-                onChange={(e) => {
-                  const value = Number(e.target.value);
-                  if (value >= 1 && value <= 20) {
-                    setPrefs({ ...prefs, people: value });
-                  }
-                }}
-              />
-              <p className="text-muted" style={{ marginTop: 4, fontSize: "0.8rem" }}>
-                Entre 1 y 20 personas
-              </p>
-            </div>
-          </div>
+        <TagInput
+          label="Alergias"
+          hint="(Enter o coma para añadir)"
+          placeholder="p. ej. cacahuete"
+          values={prefs.allergies}
+          onChange={(allergies) => change({ ...prefs, allergies })}
+        />
+        <TagInput
+          label="Intolerancias"
+          placeholder="p. ej. lactosa, gluten"
+          values={prefs.intolerances}
+          onChange={(intolerances) => change({ ...prefs, intolerances })}
+        />
+        <TagInput
+          label="Alimentos que no te gustan"
+          placeholder="p. ej. coliflor"
+          values={prefs.dislikes}
+          onChange={(dislikes) => change({ ...prefs, dislikes })}
+        />
+      </div>
 
-          {/* Alergias */}
-          <div className="card">
-            <h2 className="card-title">⚠️ Alergias</h2>
-            <div className="form-group">
-              <label>Añadir alergia</label>
-              <div style={{ display: "flex", gap: 8 }}>
-                <input
-                  type="text"
-                  value={newAllergy}
-                  onChange={(e) => setNewAllergy(e.target.value)}
-                  onKeyDown={(e) => e.key === "Enter" && addAllergy()}
-                  placeholder="Ej: nuez, marisco, lácteos..."
-                />
-                <button type="button" className="btn btn-primary" onClick={addAllergy}>
-                  Añadir
-                </button>
-              </div>
-            </div>
-            <div className="tag-list">
-              {prefs.allergies.map((allergy: string, index: number) => (
-                <span key={index} className="tag">
-                  {allergy}
-                  <span className="tag-remove" onClick={() => removeAllergy(index)}>×</span>
-                </span>
-              ))}
-              {prefs.allergies.length === 0 && (
-                <span className="text-muted" style={{ fontSize: "0.8rem" }}>Sin alergias registradas</span>
-              )}
-            </div>
-          </div>
+      <p className="small muted">
+        Aviso: las calorías son estimaciones generadas por IA y no sustituyen el consejo de un dietista o
+        médico. Revisa siempre las etiquetas de los productos si tienes alergias.
+      </p>
 
-          {/* Intolerancias */}
-          <div className="card">
-            <h2 className="card-title">🚫 Intolerancias</h2>
-            <div className="form-group">
-              <label>Añadir intolerancia</label>
-              <div style={{ display: "flex", gap: 8 }}>
-                <input
-                  type="text"
-                  value={newIntolerance}
-                  onChange={(e) => setNewIntolerance(e.target.value)}
-                  onKeyDown={(e) => e.key === "Enter" && addIntolerance()}
-                  placeholder="Ej: gluten, lactosa..."
-                />
-                <button type="button" className="btn btn-primary" onClick={addIntolerance}>
-                  Añadir
-                </button>
-              </div>
-            </div>
-            <div className="tag-list">
-              {prefs.intolerances.map((intolerance: string, index: number) => (
-                <span key={index} className="tag">
-                  {intolerance}
-                  <span className="tag-remove" onClick={() => removeIntolerance(index)}>×</span>
-                </span>
-              ))}
-              {prefs.intolerances.length === 0 && (
-                <span className="text-muted" style={{ fontSize: "0.8rem" }}>Sin intolerancias registradas</span>
-              )}
-            </div>
-          </div>
+      <ErrorBox message={error} />
+      {saved && <p className="notice info">Preferencias guardadas.</p>}
 
-          {/* Dislikes */}
-          <div className="card">
-            <h2 className="card-title">👎 No me gusta</h2>
-            <div className="form-group">
-              <label>Añadir alimento que no te gusta</label>
-              <div style={{ display: "flex", gap: 8 }}>
-                <input
-                  type="text"
-                  value={newDislike}
-                  onChange={(e) => setNewDislike(e.target.value)}
-                  onKeyDown={(e) => e.key === "Enter" && addDislike()}
-                  placeholder="Ej: espinacas, cebolla..."
-                />
-                <button type="button" className="btn btn-primary" onClick={addDislike}>
-                  Añadir
-                </button>
-              </div>
-            </div>
-            <div className="tag-list">
-              {prefs.dislikes.map((dislike: string, index: number) => (
-                <span key={index} className="tag">
-                  {dislike}
-                  <span className="tag-remove" onClick={() => removeDislike(index)}>×</span>
-                </span>
-              ))}
-              {prefs.dislikes.length === 0 && (
-                <span className="text-muted" style={{ fontSize: "0.8rem" }}>Sin alimentos marcados como "no me gusta"</span>
-              )}
-            </div>
-          </div>
-
-          {/* Botones de acción */}
-          <div style={{ display: "flex", gap: 12, marginTop: 24 }}>
-            <button className="btn btn-primary" onClick={guardarPreferencias}>
-              💾 Guardar preferencias
-            </button>
-          </div>
-        </>
-      )}
-    </div>
+      <div className="row spread">
+        <button onClick={() => navigate("/")}>← Despensa</button>
+        <button disabled={loading || !draft} onClick={() => void save()}>
+          Guardar
+        </button>
+        <button
+          className="primary"
+          disabled={loading}
+          onClick={async () => {
+            if (await save()) navigate("/comida");
+          }}
+        >
+          Siguiente: comida →
+        </button>
+      </div>
+    </section>
   );
 }

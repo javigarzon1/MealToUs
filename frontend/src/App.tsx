@@ -1,5 +1,4 @@
-import { Link, Route, Routes, Navigate } from "react-router-dom";
-import { useState, useEffect } from "react";
+import { Navigate, NavLink, Route, Routes } from "react-router-dom";
 import Pantry from "./pages/Pantry";
 import Preferences from "./pages/Preferences";
 import LunchOptions from "./pages/LunchOptions";
@@ -8,84 +7,61 @@ import WeeklyPlan from "./pages/WeeklyPlan";
 import ShoppingList from "./pages/ShoppingList";
 import Chat from "./pages/Chat";
 import Login from "./pages/Login";
+import Register from "./pages/Register";
+import { Loading } from "./components/Feedback";
+import { useAuth } from "./state/AuthState";
+import { PlanProvider, usePlan } from "./state/PlanState";
 
-function App() {
-  const [isAuthenticated, setIsAuthenticated] = useState(false);
-  const [loading, setLoading] = useState(true);
+/** Parte privada: solo se ve con sesión iniciada. */
+function Shell() {
+  const { state } = usePlan();
+  const { user, logout } = useAuth();
 
-  useEffect(() => {
-    const token = localStorage.getItem("token");
-    setIsAuthenticated(!!token);
-    setLoading(false);
-  }, []);
-
-  if (loading) {
-    return <div className="loading-screen">Cargando...</div>;
-  }
-
-  if (!isAuthenticated) {
-    return (
-      <div className="app-container">
-        <Routes>
-          <Route path="/login" element={<Login />} />
-          <Route path="*" element={<Navigate to="/login" replace />} />
-        </Routes>
-      </div>
-    );
-  }
+  const steps = [
+    { to: "/", label: "Despensa", done: state.pantry.length > 0 },
+    { to: "/preferencias", label: "Preferencias", done: state.preferences.people > 0 && state.pantry.length > 0 },
+    { to: "/comida", label: "Comida", done: !!state.lunch },
+    { to: "/cena", label: "Cena", done: !!state.dinner },
+    { to: "/semana", label: "Semana", done: !!state.plan },
+    { to: "/compra", label: "Compra", done: !!state.shopping },
+  ];
 
   return (
-    <div className="app-container">
+    <>
       <header className="app-header">
-        <div className="header-brand">
-          <img src="/logo.svg" alt="MealToUs" className="header-logo" />
-          <div className="header-text">
-            <h1>MealToUs</h1>
-            <span className="brand-subtitle">Come sano ahorrando</span>
+        <div className="app-header-inner">
+          <div className="brand-row">
+            <div className="brand" style={{ display: "flex", alignItems: "center", gap: ".5rem" }}>
+              <img src="/logo.svg" alt="" width={32} height={32} />
+              <span>Meal<span>To</span>Us</span>
+            </div>
+            <div className="userbar">
+              <span className="who muted small" title={user?.email}>{user?.email}</span>
+              <button className="link" onClick={() => void logout()}>Salir</button>
+            </div>
           </div>
+          <nav className="steps" aria-label="Pasos">
+            {steps.map((s, i) => (
+              <NavLink
+                key={s.to}
+                to={s.to}
+                end
+                className={({ isActive }) => `step${isActive ? " active" : ""}${s.done ? " done" : ""}`}
+              >
+                <span className="dot">{s.done ? "✓" : i + 1}</span>
+                <span className="label">{s.label}</span>
+              </NavLink>
+            ))}
+            <NavLink
+              to="/chat"
+              className={({ isActive }) => `step chat${isActive ? " active" : ""}`}
+            >
+              <span className="label">💬 Asistente</span>
+            </NavLink>
+          </nav>
         </div>
-        <nav className="app-nav">
-          <Link to="/" className="nav-link">
-            <span className="nav-icon">🧊</span>
-            <span className="nav-text">Despensa</span>
-          </Link>
-          <Link to="/preferencias" className="nav-link">
-            <span className="nav-icon">⚙️</span>
-            <span className="nav-text">Preferencias</span>
-          </Link>
-          <Link to="/comida" className="nav-link">
-            <span className="nav-icon">🥗</span>
-            <span className="nav-text">Comida</span>
-          </Link>
-          <Link to="/cena" className="nav-link">
-            <span className="nav-icon">🍽️</span>
-            <span className="nav-text">Cena</span>
-          </Link>
-          <Link to="/semana" className="nav-link">
-            <span className="nav-icon">📅</span>
-            <span className="nav-text">Semana</span>
-          </Link>
-          <Link to="/compra" className="nav-link">
-            <span className="nav-icon">🛒</span>
-            <span className="nav-text">Compra</span>
-          </Link>
-          <Link to="/chat" className="nav-link">
-            <span className="nav-icon">💬</span>
-            <span className="nav-text">Asistente</span>
-          </Link>
-          <button
-            className="nav-link logout-btn"
-            onClick={() => {
-              localStorage.removeItem("token");
-              window.location.href = "/login";
-            }}
-          >
-            <span className="nav-icon">🚪</span>
-            <span className="nav-text">Salir</span>
-          </button>
-        </nav>
       </header>
-      <main className="app-main">
+      <main className="page">
         <Routes>
           <Route path="/" element={<Pantry />} />
           <Route path="/preferencias" element={<Preferences />} />
@@ -95,13 +71,38 @@ function App() {
           <Route path="/compra" element={<ShoppingList />} />
           <Route path="/chat" element={<Chat />} />
           <Route path="/login" element={<Navigate to="/" replace />} />
+          <Route path="/registro" element={<Navigate to="/" replace />} />
+          <Route path="*" element={<Pantry />} />
         </Routes>
       </main>
-      <footer className="app-footer">
-        <p>MealToUs · Come sano ahorrando · Powered by IA</p>
-      </footer>
-    </div>
+    </>
   );
 }
 
-export default App;
+export default function App() {
+  const { user, loading } = useAuth();
+
+  if (loading) {
+    return (
+      <div className="auth-wrap">
+        <Loading text="Comprobando tu sesión…" />
+      </div>
+    );
+  }
+
+  if (!user) {
+    return (
+      <Routes>
+        <Route path="/registro" element={<Register />} />
+        <Route path="*" element={<Login />} />
+      </Routes>
+    );
+  }
+
+  // key={user.id}: al cambiar de usuario se descarta todo el estado del anterior
+  return (
+    <PlanProvider key={user.id} userId={user.id}>
+      <Shell />
+    </PlanProvider>
+  );
+}
