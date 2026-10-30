@@ -31,7 +31,10 @@ function Shell() {
       <header className="app-header">
         <div className="app-header-inner">
           <div className="brand-row">
-            <div className="brand">Meal<span>To</span>Us</div>
+            <div className="brand" style={{ display: "flex", alignItems: "center", gap: ".5rem" }}>
+              <img src="/logo.svg" alt="" width={32} height={32} />
+              <span>Meal<span>To</span>Us</span>
+            </div>
             <div className="userbar">
               <span className="who muted small" title={user?.email}>{user?.email}</span>
               <button className="link" onClick={() => void logout()}>Salir</button>
