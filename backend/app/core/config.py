@@ -12,6 +12,8 @@ class Settings(BaseSettings):
     llm_model: str = "claude-sonnet-5-5"
     anthropic_api_key: str = ""
     openai_api_key: str = ""
+    # Para proveedores compatibles con la API de OpenAI (Gemini, Groq...). Vacío = OpenAI.
+    llm_base_url: str = ""
 
     # --- Autenticación ---
     # Clave para firmar las sesiones. Genera una con:
