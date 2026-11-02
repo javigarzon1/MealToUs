@@ -52,6 +52,9 @@ export default function Login() {
             onChange={(e) => setPassword(e.target.value)}
             required
           />
+          <span className="hint">
+            <Link to="/olvide-contrasena">¿Has olvidado tu contraseña?</Link>
+          </span>
         </label>
 
         <ErrorBox message={formError ?? error} />
@@ -60,9 +63,12 @@ export default function Login() {
           {loading ? "Entrando…" : "Entrar"}
         </button>
 
-        <p className="small muted" style={{ margin: 0 }}>
-          ¿No tienes cuenta? <Link to="/registro">Crea una</Link>
-        </p>
+        <div className="stack" style={{ borderTop: "1px solid var(--line)", paddingTop: "1rem" }}>
+          <p className="small muted" style={{ margin: 0 }}>¿Todavía no tienes cuenta?</p>
+          <Link className="btn" to="/registro" style={{ justifyContent: "center" }}>
+            Crear cuenta
+          </Link>
+        </div>
       </form>
     </div>
   );

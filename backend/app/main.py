@@ -12,6 +12,7 @@ from app.db.session import Base, engine
 from app.models import pantry as _pantry_model  # noqa: F401  (registra la tabla)
 from app.models import user_preferences as _user_prefs_model  # noqa: F401  (registra la tabla)
 from app.models import user as _user_model  # noqa: F401  (registra la tabla)
+from app.models import password_reset as _reset_model  # noqa: F401  (registra la tabla)
 
 logger = logging.getLogger("uvicorn.error")
 

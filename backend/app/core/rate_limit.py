@@ -34,3 +34,6 @@ class LoginLimiter:
 
 
 login_limiter = LoginLimiter()
+
+# Peticiones de "olvidé mi contraseña": 5 por IP+email cada 15 minutos
+reset_limiter = LoginLimiter()

@@ -8,6 +8,8 @@ import ShoppingList from "./pages/ShoppingList";
 import Chat from "./pages/Chat";
 import Login from "./pages/Login";
 import Register from "./pages/Register";
+import ForgotPassword from "./pages/ForgotPassword";
+import ResetPassword from "./pages/ResetPassword";
 import { Loading } from "./components/Feedback";
 import { useAuth } from "./state/AuthState";
 import { PlanProvider, usePlan } from "./state/PlanState";
@@ -72,6 +74,8 @@ function Shell() {
           <Route path="/chat" element={<Chat />} />
           <Route path="/login" element={<Navigate to="/" replace />} />
           <Route path="/registro" element={<Navigate to="/" replace />} />
+          <Route path="/olvide-contrasena" element={<Navigate to="/" replace />} />
+          <Route path="/restablecer" element={<ResetPassword />} />
           <Route path="*" element={<Pantry />} />
         </Routes>
       </main>
@@ -94,6 +98,8 @@ export default function App() {
     return (
       <Routes>
         <Route path="/registro" element={<Register />} />
+        <Route path="/olvide-contrasena" element={<ForgotPassword />} />
+        <Route path="/restablecer" element={<ResetPassword />} />
         <Route path="*" element={<Login />} />
       </Routes>
     );

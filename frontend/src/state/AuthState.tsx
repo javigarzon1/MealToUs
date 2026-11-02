@@ -8,7 +8,7 @@ interface AuthValue {
   /** true mientras se comprueba si ya había una sesión abierta */
   loading: boolean;
   login: (email: string, password: string) => Promise<void>;
-  register: (email: string, password: string) => Promise<void>;
+  register: (email: string, password: string, fullName?: string) => Promise<void>;
   logout: () => Promise<void>;
 }
 
@@ -42,8 +42,8 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     setUser(await api.login(email, password));
   }, []);
 
-  const register = useCallback(async (email: string, password: string) => {
-    setUser(await api.register(email, password));
+  const register = useCallback(async (email: string, password: string, fullName?: string) => {
+    setUser(await api.register(email, password, fullName));
   }, []);
 
   const logout = useCallback(async () => {
