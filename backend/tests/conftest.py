@@ -6,10 +6,10 @@ from sqlalchemy.orm import sessionmaker
 from sqlalchemy.pool import StaticPool
 
 from app.core.config import settings
-from app.core.rate_limit import login_limiter
+from app.core.rate_limit import login_limiter, reset_limiter
 from app.db.session import Base, get_db
 from app.main import app
-from app.models import pantry, user, user_preferences  # noqa: F401
+from app.models import pantry, password_reset, user, user_preferences  # noqa: F401
 
 settings.secret_key = settings.secret_key or "clave-solo-para-tests"
 
@@ -32,6 +32,7 @@ def client():
 
     app.dependency_overrides[get_db] = _get_db
     login_limiter.reset()
+    reset_limiter.reset()
     settings.allow_registration = True
     with TestClient(app) as c:
         yield c

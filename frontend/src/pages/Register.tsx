@@ -10,6 +10,7 @@ const EMAIL_RE = /^[^@\s]+@[^@\s]+\.[^@\s]+$/;
 export default function Register() {
   const { register } = useAuth();
   const { loading, error, run } = useAction();
+  const [name, setName] = useState("");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [repeat, setRepeat] = useState("");
@@ -21,7 +22,7 @@ export default function Register() {
     if (password.length < 8) return setFormError("La contraseña debe tener al menos 8 caracteres.");
     if (password !== repeat) return setFormError("Las contraseñas no coinciden.");
     setFormError(null);
-    await run(() => register(email, password));
+    await run(() => register(email, password, name.trim()));
   }
 
   return (
@@ -34,6 +35,14 @@ export default function Register() {
         </div>
 
         <label className="field">
+          <span>
+            Nombre <span className="hint">(opcional)</span>
+          </span>
+          <input type="text" autoComplete="name" maxLength={100} value={name}
+            onChange={(e) => setName(e.target.value)} autoFocus />
+        </label>
+
+        <label className="field">
           Email
           <input
             type="email"
@@ -41,7 +50,6 @@ export default function Register() {
             value={email}
             onChange={(e) => setEmail(e.target.value)}
             required
-            autoFocus
           />
         </label>
 

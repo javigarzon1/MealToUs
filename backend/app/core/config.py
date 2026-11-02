@@ -23,5 +23,15 @@ class Settings(BaseSettings):
     cookie_secure: bool = False            # True cuando se sirva por HTTPS propio
     allow_registration: bool = True        # False para cerrar el alta de usuarios
 
+    # --- Recuperación de contraseña ---
+    app_base_url: str = "http://localhost:5173"   # URL pública de la web (para el enlace del correo)
+    reset_token_minutes: int = 30
+    smtp_host: str = ""        # vacío = el correo se escribe en el log del servidor
+    smtp_port: int = 587
+    smtp_user: str = ""
+    smtp_password: str = ""
+    smtp_from: str = ""
+    smtp_starttls: bool = True
+
 
 settings = Settings()

@@ -47,3 +47,29 @@ class RegisterRequest(LoginRequest):
             return None
         v = v.strip()[:100]
         return v or None
+
+
+class ForgotPasswordRequest(BaseModel):
+    email: str
+
+    @field_validator("email")
+    @classmethod
+    def valid_email(cls, v: str) -> str:
+        v = v.strip().lower()
+        if len(v) > 254 or not _EMAIL_RE.match(v):
+            raise ValueError("Introduce un email válido.")
+        return v
+
+
+class ResetPasswordRequest(BaseModel):
+    token: str
+    password: str
+
+    @field_validator("password")
+    @classmethod
+    def long_enough(cls, v: str) -> str:
+        if len(v) < 8:
+            raise ValueError("La contraseña debe tener al menos 8 caracteres.")
+        if len(v) > 128:
+            raise ValueError("La contraseña no puede superar los 128 caracteres.")
+        return v

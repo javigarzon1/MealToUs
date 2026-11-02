@@ -54,9 +54,13 @@ const post = <T,>(path: string, body?: unknown) => request<T>("POST", path, body
 
 export const api = {
   // --- Cuenta ---
-  register: (email: string, password: string) => post<AuthUser>("/auth/register", { email, password }),
+  register: (email: string, password: string, full_name?: string) =>
+    post<AuthUser>("/auth/register", { email, password, full_name: full_name || null }),
   login: (email: string, password: string) => post<AuthUser>("/auth/login", { email, password }),
   logout: () => post<void>("/auth/logout"),
+  forgotPassword: (email: string) => post<{ message: string }>("/auth/forgot-password", { email }),
+  resetPassword: (token: string, password: string) =>
+    post<void>("/auth/reset-password", { token, password }),
   me: () => request<AuthUser>("GET", "/auth/me"),
 
   // --- Despensa y preferencias (por usuario) ---
