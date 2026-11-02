@@ -35,7 +35,7 @@ class OpenAIClient(LLMClient):
     def complete(self, system: str, messages: list[dict], max_tokens: int = 2000) -> str:
         resp = self._client.chat.completions.create(
             model=settings.llm_model,
-            max_tokens=max_tokens,
+            max_completion_tokens=max_tokens,  # los modelos nuevos rechazan max_tokens
             messages=[{"role": "system", "content": system}, *messages],
         )
         return resp.choices[0].message.content or ""
