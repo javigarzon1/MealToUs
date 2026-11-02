@@ -1,4 +1,5 @@
 import logging
+import re
 
 from fastapi import APIRouter, Depends, HTTPException # pyright: ignore[reportMissingImports]
 
@@ -14,6 +15,15 @@ logger = logging.getLogger(__name__)
 router = APIRouter(prefix="/menus", tags=["menus"])
 
 
+_SECRET_RE = re.compile(r"(sk-[A-Za-z0-9_\-]{8,}|[A-Za-z0-9_\-]{32,})")
+
+
+def _provider_message(exc: Exception) -> str:
+    """Motivo que da el proveedor del LLM, recortado y sin nada parecido a una clave."""
+    msg = getattr(exc, "message", None) or str(exc)
+    return _SECRET_RE.sub("***", " ".join(str(msg).split()))[:300]
+
+
 def _guard(fn, *args):
     """Convierte los fallos del agente/LLM en un 502 con un mensaje útil."""
     try:
@@ -24,8 +34,8 @@ def _guard(fn, *args):
         logger.exception("Error llamando al LLM")
         raise HTTPException(
             502,
-            f"Error al llamar al LLM ({type(exc).__name__}). "
-            "Revisa la API key y el proveedor en backend/.env.",
+            f"Error al llamar al LLM ({type(exc).__name__}): {_provider_message(exc)} "
+            "Revisa la API key, el modelo y el proveedor en backend/.env.",
         )
 
 
