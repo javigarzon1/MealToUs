@@ -242,3 +242,12 @@ MIT License - Ver [LICENSE](LICENSE) para más detalles.
 <p align="center">
   <strong>🍽️ MealToUs</strong> — Come sano ahorrando
 </p>
+## Ejecutar con Docker
+
+```bash
+cp .env.example .env        # rellena SECRET_KEY y la clave del LLM
+docker compose up --build
+```
+
+La app queda en <http://localhost:8080>. La base de datos persiste en el volumen
+`mealtous-data`. Para parar: `docker compose down` (añade `-v` para borrar los datos).
