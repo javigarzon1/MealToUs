@@ -33,18 +33,19 @@ export default function Preferences() {
 
   return (
     <section className="stack">
-      <div>
+      <div className="page__head">
         <h2>Preferencias</h2>
-        <p className="muted">
+        <p className="page__lede">
           Cuántas personas comen y qué debe evitar la IA. Alergias e intolerancias se tratan como
           restricciones estrictas.
         </p>
       </div>
 
-      <div className="card stack">
+      <div className="form-block stack">
         <label className="field" style={{ maxWidth: 220 }}>
           Número de personas
           <input
+            className="input"
             type="number"
             min={1}
             max={20}
@@ -83,22 +84,24 @@ export default function Preferences() {
       </p>
 
       <ErrorBox message={error} />
-      {saved && <p className="notice info">Preferencias guardadas.</p>}
+      {saved && <div className="note" role="status"><p>Preferencias guardadas.</p></div>}
 
-      <div className="row spread">
-        <button onClick={() => navigate("/")}>← Despensa</button>
-        <button disabled={loading || !draft} onClick={() => void save()}>
-          Guardar
-        </button>
-        <button
-          className="primary"
-          disabled={loading}
-          onClick={async () => {
-            if (await save()) navigate("/comida");
-          }}
-        >
-          Siguiente: comida →
-        </button>
+      <div className="actions actions--between">
+        <button className="btn btn--quiet" onClick={() => navigate("/")}>Volver a despensa</button>
+        <div className="actions">
+          <button className="btn" disabled={loading || !draft} onClick={() => void save()}>
+            Guardar
+          </button>
+          <button
+            className="btn btn--primary"
+            disabled={loading}
+            onClick={async () => {
+              if (await save()) navigate("/comida");
+            }}
+          >
+            Siguiente: comida
+          </button>
+        </div>
       </div>
     </section>
   );

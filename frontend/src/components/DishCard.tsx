@@ -13,37 +13,49 @@ export function fmt(n: number): string {
 interface Props {
   dish: Dish;
   selected?: boolean;
+  index?: number;
   onChoose?: () => void;
 }
 
-export default function DishCard({ dish, selected, onChoose }: Props) {
+/** La "ficha" del plato: banda del color de la dieta, kcal grandes e ingredientes con línea de puntos. */
+export default function DishCard({ dish, selected, index = 0, onChoose }: Props) {
   return (
-    <article className={`card dish${selected ? " selected" : ""}`}>
-      <span className={`badge ${dish.diet_type}`}>{DIET_LABEL[dish.diet_type] ?? dish.diet_type}</span>
-      <h3>{dish.name}</h3>
-      <div className="kcal">
-        {dish.kcal_per_serving} <small>kcal / ración</small>
+    <article
+      className={`dish dish--${dish.diet_type}${selected ? " is-chosen" : ""}`}
+      style={{ ["--i" as string]: index }}
+    >
+      <div className="dish__band">
+        <div className="dish__kind">{DIET_LABEL[dish.diet_type] ?? dish.diet_type}</div>
+        <h3 className="dish__name">{dish.name}</h3>
       </div>
-      <p className="small muted" style={{ margin: ".6rem 0 .2rem" }}>Ingredientes (por ración)</p>
-      <ul className="plain small">
-        {dish.ingredients.map((i, idx) => (
-          <li key={`${i.name}-${idx}`}>
-            {i.name} · {fmt(i.quantity)} {i.unit}
-          </li>
-        ))}
-      </ul>
-      {dish.uses_from_pantry.length > 0 && (
-        <p className="small" style={{ marginTop: ".6rem" }}>
-          ✓ Aprovecha de tu despensa: {dish.uses_from_pantry.join(", ")}
-        </p>
-      )}
-      {onChoose && (
-        <div className="row end" style={{ marginTop: ".8rem" }}>
-          <button className={selected ? "" : "primary"} onClick={onChoose}>
-            {selected ? "✓ Elegida" : "Elegir esta"}
-          </button>
+      <div className="dish__body">
+        <div className="dish__kcal">
+          <strong>{dish.kcal_per_serving}</strong>
+          <span>kcal por ración</span>
         </div>
-      )}
+        <div>
+          <p className="dish__sub">Ingredientes por ración</p>
+          <ul className="leaders">
+            {dish.ingredients.map((i, idx) => (
+              <li key={`${i.name}-${idx}`}>
+                <span>{i.name}</span>
+                <span className="leaders__fill" aria-hidden="true" />
+                <span className="leaders__qty">{fmt(i.quantity)} {i.unit}</span>
+              </li>
+            ))}
+          </ul>
+        </div>
+        {dish.uses_from_pantry.length > 0 && (
+          <p className="dish__pantry">De tu despensa: {dish.uses_from_pantry.join(", ")}</p>
+        )}
+        {onChoose && (
+          <div className="dish__foot">
+            <button className={`btn ${selected ? "" : "btn--primary"}`} onClick={onChoose} aria-pressed={!!selected}>
+              {selected ? "Elegida" : "Elegir esta"}
+            </button>
+          </div>
+        )}
+      </div>
     </article>
   );
 }

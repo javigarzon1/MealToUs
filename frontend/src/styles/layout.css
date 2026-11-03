@@ -1,0 +1,76 @@
+/* ───────── Estructura de la app ───────── */
+.topbar {
+  position: sticky; top: 0; z-index: 20;
+  background: var(--bg);
+  border-bottom: 1px solid var(--line);
+}
+.topbar__inner {
+  max-width: 1120px; margin: 0 auto;
+  padding: 0.75rem 1.25rem 0;
+}
+.topbar__row {
+  display: flex; align-items: center; justify-content: space-between; gap: 1rem;
+  padding-bottom: 0.65rem;
+}
+.brand {
+  display: inline-flex; align-items: center; gap: 0.6rem;
+  font-family: var(--font-display); font-size: 1.45rem; line-height: 1;
+  color: var(--ink); text-decoration: none;
+}
+.brand img { width: 34px; height: 34px; display: block; }
+.brand b { font-weight: 400; color: var(--healthy-ink); }
+
+.userbar { display: flex; align-items: center; gap: 0.6rem; min-width: 0; }
+.userbar__who { color: var(--muted); font-size: var(--t-sm); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; max-width: 26ch; }
+
+/* Recorrido: el flujo es una secuencia real (despensa → compra) */
+.journey { display: flex; align-items: center; gap: 0.25rem; padding-bottom: 0.75rem; overflow-x: auto; scrollbar-width: none; }
+.journey::-webkit-scrollbar { display: none; }
+.journey__list { display: flex; align-items: center; gap: 0.25rem; list-style: none; padding: 0; margin: 0; }
+.journey__list li { display: flex; align-items: center; }
+.journey__list li + li::before {
+  content: ""; width: 1.1rem; height: 2px; background: var(--line-strong); margin-right: 0.25rem; flex: none;
+}
+.step {
+  display: inline-flex; align-items: center; gap: 0.5rem; white-space: nowrap;
+  padding: 0.35rem 0.8rem 0.35rem 0.4rem; border-radius: var(--r-pill);
+  color: var(--ink-2); text-decoration: none; font-weight: 600; font-size: var(--t-sm);
+  transition: background 0.15s var(--ease), color 0.15s var(--ease);
+}
+.step:hover { background: var(--surface-2); }
+.step__dot {
+  display: grid; place-items: center; width: 1.6rem; height: 1.6rem; border-radius: 50%;
+  border: 2px solid var(--line-strong); font-size: 0.78rem; font-weight: 700; color: var(--muted);
+}
+.step.is-done .step__dot { background: var(--healthy); border-color: var(--healthy); color: #fff; }
+.step.is-active { background: var(--ink); color: var(--on-ink); }
+.step.is-active .step__dot { background: var(--lemon); border-color: var(--lemon); color: #2b2036; }
+.journey__spacer { flex: 1; min-width: 0.5rem; }
+.step--chat { padding-left: 0.8rem; border: 1.5px solid var(--line-strong); }
+.step--chat.is-active { border-color: var(--ink); }
+
+.page { max-width: 1120px; margin: 0 auto; padding: 2rem 1.25rem 4rem; }
+.page__head { margin-bottom: 1.75rem; }
+.page__head h2 { margin-bottom: 0.6rem; }
+.page__lede { color: var(--ink-2); font-size: var(--t-md); max-width: 60ch; margin: 0; }
+
+.stack > * + * { margin-top: 1.5rem; }
+.stack--tight > * + * { margin-top: 0.9rem; }
+.actions { display: flex; flex-wrap: wrap; align-items: center; gap: 0.75rem; }
+.actions--between { justify-content: space-between; }
+.actions--end { justify-content: flex-end; }
+.actions--sep { padding-top: 1.25rem; border-top: 1px solid var(--line); margin-top: 2rem; }
+
+.footer-note { color: var(--muted); font-size: var(--t-sm); max-width: 70ch; }
+
+@media (max-width: 640px) {
+  .topbar__inner { padding: 0.6rem 1rem 0; }
+  .page { padding: 1.5rem 1rem 3rem; }
+  .userbar__who { display: none; }
+  .step__label { display: none; }
+  .step.is-active .step__label { display: inline; }
+  .step { padding-right: 0.4rem; }
+  .step.is-active { padding-right: 0.8rem; }
+  .step--chat .step__label { display: inline; }
+  .actions--between > .btn { flex: 1 1 auto; justify-content: center; }
+}

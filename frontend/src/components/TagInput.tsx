@@ -34,12 +34,13 @@ export default function TagInput({ label, hint, placeholder, values, onChange }:
   }
 
   return (
-    <div className="stack" style={{ gap: ".5rem" }}>
+    <div className="stack stack--tight">
       <label className="field">
         <span>
-          {label} {hint && <span className="hint">{hint}</span>}
+          {label} {hint && <span className="field__hint">{hint}</span>}
         </span>
         <input
+          className="input"
           type="text"
           value={draft}
           placeholder={placeholder}

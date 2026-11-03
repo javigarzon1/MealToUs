@@ -31,9 +31,9 @@ export default function WeeklyPlan() {
 
   return (
     <section className="stack">
-      <div>
+      <div className="page__head">
         <h2>Menú de los próximos 7 días</h2>
-        <p className="muted">
+        <p className="page__lede">
           Una comida y una cena por día, siguiendo las calorías de las opciones que elegiste.
         </p>
       </div>
@@ -46,8 +46,8 @@ export default function WeeklyPlan() {
         />
       )}
 
-      <div className="row">
-        <button className="primary" onClick={generatePlan} disabled={!ready || busy}>
+      <div className="actions">
+        <button className="btn btn--primary" onClick={generatePlan} disabled={!ready || busy}>
           {plan ? "Generar otro menú" : "Generar menú semanal"}
         </button>
       </div>
@@ -57,63 +57,58 @@ export default function WeeklyPlan() {
 
       {plan && (
         <>
-          <div className="row">
-            <span className={`badge ${plan.diet_type}`}>{DIET_LABEL[plan.diet_type] ?? plan.diet_type}</span>
-            <span className="muted">Objetivo: ~{plan.target_kcal_per_day} kcal/día</span>
+          <div className="week-head">
+            <span className={`badge badge--${plan.diet_type}`}>{DIET_LABEL[plan.diet_type] ?? plan.diet_type}</span>
+            <span className="muted">Objetivo: unas {plan.target_kcal_per_day} kcal al día</span>
           </div>
 
-          <div className="card table-wrap">
-            <table>
-              <thead>
-                <tr>
-                  <th>Día</th>
-                  <th>Comida</th>
-                  <th>Cena</th>
-                  <th>kcal/día</th>
-                </tr>
-              </thead>
-              <tbody>
-                {plan.days.map((d) => (
-                  <tr key={d.day}>
-                    <td>
-                      <strong>{d.day}</strong>
-                    </td>
-                    <td>
-                      {d.lunch.name}
-                      <div className="small muted">{d.lunch.kcal_per_serving} kcal</div>
-                    </td>
-                    <td>
-                      {d.dinner.name}
-                      <div className="small muted">{d.dinner.kcal_per_serving} kcal</div>
-                    </td>
-                    <td>{d.lunch.kcal_per_serving + d.dinner.kcal_per_serving}</td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
+          <div className="week">
+            {plan.days.map((d) => {
+              const total = d.lunch.kcal_per_serving + d.dinner.kcal_per_serving;
+              const pct = Math.min(100, Math.round((total / Math.max(1, plan.target_kcal_per_day)) * 100));
+              return (
+                <article key={d.day} className={`day day--${plan.diet_type}`}>
+                  <h3 className="day__name">{d.day}</h3>
+                  <div>
+                    <div className="meal__when">Comida</div>
+                    <div className="meal__name">{d.lunch.name}</div>
+                    <div className="meal__kcal">{d.lunch.kcal_per_serving} kcal</div>
+                  </div>
+                  <div>
+                    <div className="meal__when">Cena</div>
+                    <div className="meal__name">{d.dinner.name}</div>
+                    <div className="meal__kcal">{d.dinner.kcal_per_serving} kcal</div>
+                  </div>
+                  <div className="day__total">
+                    <div className="day__total-row"><span>Total del día</span><span>{total} kcal</span></div>
+                    <div className="bar" role="img" aria-label={`${pct}% del objetivo diario`}><span style={{ width: `${pct}%` }} /></div>
+                  </div>
+                </article>
+              );
+            })}
           </div>
 
-          <div className="card stack">
+          <div className="cta-panel">
             <h3>¿Te gusta este menú?</h3>
-            <p className="muted" style={{ margin: 0 }}>
+            <p>
               Genera la lista de la compra (solo lo que te falta, para {state.preferences.people}{" "}
               {state.preferences.people === 1 ? "persona" : "personas"}) y las recetas.
             </p>
             {shopAction.loading && <Loading text="Preparando la compra y las recetas… puede tardar hasta un minuto." />}
             <ErrorBox message={shopAction.error} />
-            <div className="row">
-              <button className="primary" onClick={generateShopping} disabled={busy}>
-                Crear lista de la compra y recetas →
+            <div className="actions">
+              <button className="btn btn--primary" onClick={generateShopping} disabled={busy}>
+                Crear lista de la compra y recetas
               </button>
             </div>
           </div>
         </>
       )}
 
-      <div className="row spread">
-        <button onClick={() => navigate("/cena")}>← Cena</button>
+      <div className="actions actions--between">
+        <button className="btn btn--quiet" onClick={() => navigate("/cena")}>Volver a cena</button>
         {state.shopping && (
-          <button onClick={() => navigate("/compra")}>Ver la compra ya generada →</button>
+          <button className="btn" onClick={() => navigate("/compra")}>Ver la compra ya generada</button>
         )}
       </div>
     </section>
