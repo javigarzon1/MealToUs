@@ -2,17 +2,21 @@ name: Docker Image CI
 
 on:
   push:
-    branches: [ "main" ]
+    branches: [main]
   pull_request:
-    branches: [ "main" ]
+    branches: [main]
+
+permissions:
+  contents: read
 
 jobs:
-
   build:
-
+    name: Construir imágenes (docker compose)
     runs-on: ubuntu-latest
-
     steps:
-    - uses: actions/checkout@v4
-    - name: Build the Docker image
-      run: docker build . --file Dockerfile --tag my-image-name:$(date +%s)
+      - uses: actions/checkout@v4
+      # Construye backend y frontend tal como los define docker-compose.yml
+      - name: Build
+        run: docker compose build
+        env:
+          SECRET_KEY: clave-solo-para-ci
