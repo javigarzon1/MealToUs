@@ -15,8 +15,6 @@
   </style>
   <g transform="translate(60 66) scale(.86) translate(-60 -62)">
   <ellipse class="sh" cx="60" cy="114" rx="30" ry="4" fill="#3b2a1d" opacity=".14"/>
-  <g class="snow" fill="none" stroke="#6BC6E8" stroke-width="3" stroke-linecap="round"><path d="M104 20v12M98 26h12M100 22l8 8M108 22l-8 8"/></g>
-  <g class="snow b" fill="none" stroke="#6BC6E8" stroke-width="3" stroke-linecap="round"><path d="M14 40v10M9 45h10M10.5 41.5l7 7M17.5 41.5l-7 7"/></g>
   <g class="jump">
     <rect x="38" y="104" width="10" height="8" rx="3" fill="#3b2a1d"/>
     <rect x="72" y="104" width="10" height="8" rx="3" fill="#3b2a1d"/>
@@ -24,6 +22,8 @@
     <path d="M32 96q0 4 6 4" fill="none" stroke="#fff" stroke-width="3" stroke-linecap="round" opacity=".5"/>
     <!-- puerta superior = pantalla -->
     <rect x="33" y="13" width="54" height="36" rx="10" fill="#fff"/>
+    <g class="snow" fill="none" stroke="#6BC6E8" stroke-width="2.4" stroke-linecap="round"><path d="M42 16v10M37 21h10M38.5 17.5l7 7M45.5 17.5l-7 7"/></g>
+    <g class="snow b" fill="none" stroke="#6BC6E8" stroke-width="2.4" stroke-linecap="round"><path d="M72 40v10M67 45h10M68.5 41.5l7 7M75.5 41.5l-7 7"/></g>
     <rect x="51" y="8" width="18" height="5" rx="2.5" fill="#3b2a1d"/>
     <g class="blink"><circle cx="50" cy="28" r="4" fill="#3b2a1d"/><circle cx="66" cy="28" r="4" fill="#3b2a1d"/></g>
     <path d="M52 37q6 6 12 0" fill="none" stroke="#3b2a1d" stroke-width="3.5" stroke-linecap="round"/>
