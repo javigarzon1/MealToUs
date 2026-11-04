@@ -239,3 +239,28 @@ input[type="checkbox"].check:checked::after {
 .row-inline > .field { flex: 1 1 180px; }
 .auth__card form > .btn, .auth__alt .btn:not(.btn--quiet) { width: 100%; }
 .auth__card h1 { margin-bottom: 0.4rem; }
+
+/* ───────── Estilo cercano y colorido ───────── */
+.btn { font-weight: 800; }
+.btn--primary { background: var(--ink); }
+.topbar { background: color-mix(in srgb, var(--bg) 88%, transparent); backdrop-filter: blur(8px); }
+.brand { font-weight: 900; letter-spacing: -0.01em; }
+.brand b { color: #ff6b3d; font-weight: 900; }
+.brand img { border-radius: 11px; }
+.dish { background: var(--tone-tint); border: 0; box-shadow: 0 14px 0 -8px color-mix(in srgb, var(--tone) 35%, transparent); }
+.dish__band { background: transparent; padding-bottom: 0.4rem; }
+.dish__name { font-weight: 900; font-size: 1.45rem; }
+.dish__body { padding-top: 0.6rem; }
+.dish__kcal strong { font-family: var(--font-ui); font-weight: 900; font-size: 2.6rem; }
+.dish__pantry { background: color-mix(in srgb, var(--surface) 70%, transparent); border-radius: var(--r-md); padding: 0.6rem 0.9rem; }
+.dish .leaders__fill { border-bottom-color: color-mix(in srgb, var(--tone-ink) 35%, transparent); }
+.dish .btn--primary { background: var(--ink); }
+.dish.is-chosen { box-shadow: 0 0 0 4px var(--surface), 0 0 0 8px var(--tone); }
+.step.is-active { background: #ff6b3d; color: #fff; }
+.day, .market, .pantry__list, .form-block, .recipe, .chat { border-radius: var(--r-lg); }
+.day__name, .recipe summary { font-weight: 900; }
+.steps li::before { font-family: var(--font-ui); font-weight: 900; color: #ff6b3d; }
+.auth__hero h2 { font-weight: 900; }
+.auth__hero .brand b { color: #ffd23f; }
+.ticket span, .ticket em { font-family: var(--font-ui); font-weight: 900; }
+.ticket { border-left: 0; border-radius: var(--r-lg); }

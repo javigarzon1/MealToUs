@@ -43,8 +43,8 @@
   border: 2px solid var(--line-strong); font-size: 0.78rem; font-weight: 700; color: var(--muted);
 }
 .step.is-done .step__dot { background: var(--healthy); border-color: var(--healthy); color: #fff; }
-.step.is-active { background: var(--ink); color: var(--on-ink); }
-.step.is-active .step__dot { background: var(--lemon); border-color: var(--lemon); color: #2b2036; }
+.step.is-active { background: #ff6b3d; color: #fff; }
+.step.is-active .step__dot { background: var(--lemon); border-color: var(--lemon); color: #3b2a1d; }
 .journey__spacer { flex: 1; min-width: 0.5rem; }
 .step--chat { padding-left: 0.8rem; border: 1.5px solid var(--line-strong); }
 .step--chat.is-active { border-color: var(--ink); }
