@@ -2,6 +2,7 @@ import { useState } from "react";
 import type { FormEvent } from "react";
 import { Link } from "react-router-dom";
 import { api } from "../api/client";
+import AuthShell from "../components/AuthShell";
 import { ErrorBox } from "../components/Feedback";
 import { useAction } from "../hooks/useAction";
 
@@ -17,41 +18,32 @@ export default function ForgotPassword() {
   }
 
   return (
-    <div className="auth-wrap">
-      <form className="card auth-card stack" onSubmit={onSubmit} noValidate>
+    <AuthShell>
+      <form className="stack" onSubmit={onSubmit} noValidate>
         <div>
-          <div className="brand">Meal<span>To</span>Us</div>
-          <h2>Recupera tu contraseña</h2>
+          <h1>Recupera tu contraseña</h1>
           <p className="muted">Te enviaremos un enlace para elegir una nueva.</p>
         </div>
 
         {sent ? (
-          <p className="notice info">{sent} Revisa también la carpeta de spam.</p>
+          <div className="note"><p>{sent} Revisa también la carpeta de spam.</p></div>
         ) : (
           <>
             <label className="field">
               Email
-              <input
-                type="email"
-                autoComplete="email"
-                value={email}
-                onChange={(e) => setEmail(e.target.value)}
-                required
-                autoFocus
-              />
+              <input className="input" type="email" autoComplete="email" value={email}
+                onChange={(e) => setEmail(e.target.value)} required autoFocus />
             </label>
             <ErrorBox message={error} />
-            <button className="primary" type="submit" disabled={loading || !email.trim()}
-              style={{ justifyContent: "center" }}>
+            <button className="btn btn--primary" type="submit" disabled={loading || !email.trim()}>
               {loading ? "Enviando…" : "Enviar enlace"}
             </button>
           </>
         )}
-
-        <p className="small muted" style={{ margin: 0 }}>
-          <Link to="/login">← Volver a iniciar sesión</Link>
-        </p>
       </form>
-    </div>
+      <div className="auth__alt">
+        <Link className="btn btn--quiet" to="/login">Volver a iniciar sesión</Link>
+      </div>
+    </AuthShell>
   );
 }

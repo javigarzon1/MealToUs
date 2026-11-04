@@ -17,9 +17,9 @@ export default function LunchOptions() {
 
   return (
     <section className="stack">
-      <div>
+      <div className="page__head">
         <h2>Elige tu comida</h2>
-        <p className="muted">
+        <p className="page__lede">
           La IA propone tres opciones con lo que tienes: Healthy, Normal y Deportista. La que elijas fija
           las calorías de referencia para el resto de la semana.
         </p>
@@ -29,8 +29,8 @@ export default function LunchOptions() {
         <Missing text="Primero añade algo a tu despensa." to="/" cta="Ir a la despensa" />
       )}
 
-      <div className="row">
-        <button className="primary" onClick={generate} disabled={loading || state.pantry.length === 0}>
+      <div className="actions">
+        <button className="btn btn--primary" onClick={generate} disabled={loading || state.pantry.length === 0}>
           {state.lunchOptions ? "Generar otras opciones" : "Generar opciones de comida"}
         </button>
       </div>
@@ -39,11 +39,12 @@ export default function LunchOptions() {
       <ErrorBox message={error} />
 
       {state.lunchOptions && (
-        <div className="grid cols-3">
-          {state.lunchOptions.options.map((d) => (
+        <div className="dishes">
+          {state.lunchOptions.options.map((d, i) => (
             <DishCard
               key={d.name}
               dish={d}
+              index={i}
               selected={state.lunch?.name === d.name}
               onChoose={() => chooseLunch(d)}
             />
@@ -51,10 +52,10 @@ export default function LunchOptions() {
         </div>
       )}
 
-      <div className="row spread">
-        <button onClick={() => navigate("/preferencias")}>← Preferencias</button>
-        <button className="primary" disabled={!state.lunch} onClick={() => navigate("/cena")}>
-          Siguiente: cena →
+      <div className="actions actions--between">
+        <button className="btn btn--quiet" onClick={() => navigate("/preferencias")}>Volver a preferencias</button>
+        <button className="btn btn--primary" disabled={!state.lunch} onClick={() => navigate("/cena")}>
+          Siguiente: cena
         </button>
       </div>
     </section>

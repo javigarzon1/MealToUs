@@ -1,6 +1,7 @@
 import { useState } from "react";
 import type { FormEvent } from "react";
 import { Link } from "react-router-dom";
+import AuthShell from "../components/AuthShell";
 import { ErrorBox } from "../components/Feedback";
 import { useAction } from "../hooks/useAction";
 import { useAuth } from "../state/AuthState";
@@ -26,67 +27,47 @@ export default function Register() {
   }
 
   return (
-    <div className="auth-wrap">
-      <form className="card auth-card stack" onSubmit={onSubmit} noValidate>
+    <AuthShell>
+      <form className="stack" onSubmit={onSubmit} noValidate>
         <div>
-          <div className="brand">Meal<span>To</span>Us</div>
-          <h2>Crea tu cuenta</h2>
+          <h1>Crea tu cuenta</h1>
           <p className="muted">Solo necesitas un email y una contraseña.</p>
         </div>
 
         <label className="field">
-          <span>
-            Nombre <span className="hint">(opcional)</span>
-          </span>
-          <input type="text" autoComplete="name" maxLength={100} value={name}
+          <span>Nombre <span className="field__hint">(opcional)</span></span>
+          <input className="input" type="text" autoComplete="name" maxLength={100} value={name}
             onChange={(e) => setName(e.target.value)} autoFocus />
         </label>
 
         <label className="field">
           Email
-          <input
-            type="email"
-            autoComplete="email"
-            value={email}
-            onChange={(e) => setEmail(e.target.value)}
-            required
-          />
+          <input className="input" type="email" autoComplete="email" value={email}
+            onChange={(e) => setEmail(e.target.value)} required />
         </label>
 
         <label className="field">
-          <span>
-            Contraseña <span className="hint">(mínimo 8 caracteres)</span>
-          </span>
-          <input
-            type="password"
-            autoComplete="new-password"
-            value={password}
-            onChange={(e) => setPassword(e.target.value)}
-            required
-          />
+          <span>Contraseña <span className="field__hint">(mínimo 8 caracteres)</span></span>
+          <input className="input" type="password" autoComplete="new-password" value={password}
+            onChange={(e) => setPassword(e.target.value)} required />
         </label>
 
         <label className="field">
           Repite la contraseña
-          <input
-            type="password"
-            autoComplete="new-password"
-            value={repeat}
-            onChange={(e) => setRepeat(e.target.value)}
-            required
-          />
+          <input className="input" type="password" autoComplete="new-password" value={repeat}
+            onChange={(e) => setRepeat(e.target.value)} required />
         </label>
 
         <ErrorBox message={formError ?? error} />
 
-        <button className="primary" type="submit" disabled={loading} style={{ justifyContent: "center" }}>
+        <button className="btn btn--primary" type="submit" disabled={loading}>
           {loading ? "Creando cuenta…" : "Crear cuenta"}
         </button>
-
-        <p className="small muted" style={{ margin: 0 }}>
-          ¿Ya tienes cuenta? <Link to="/login">Inicia sesión</Link>
-        </p>
       </form>
-    </div>
+      <div className="auth__alt">
+        <p className="small muted">¿Ya tienes cuenta?</p>
+        <Link className="btn" to="/login">Iniciar sesión</Link>
+      </div>
+    </AuthShell>
   );
 }

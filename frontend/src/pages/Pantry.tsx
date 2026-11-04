@@ -6,7 +6,10 @@ import { ErrorBox } from "../components/Feedback";
 import { useAction } from "../hooks/useAction";
 import { usePlan } from "../state/PlanState";
 
-const SUGGESTIONS = ["Huevos", "Leche", "Arroz", "Pasta", "Pollo", "Tomate", "Cebolla", "Patatas", "Atún", "Yogur"];
+const SUGGESTIONS: [string, string][] = [
+  ["Huevos", "🥚"], ["Leche", "🥛"], ["Arroz", "🍚"], ["Pasta", "🍝"], ["Pollo", "🍗"],
+  ["Tomate", "🍅"], ["Cebolla", "🧅"], ["Patatas", "🥔"], ["Atún", "🐟"], ["Yogur", "🍶"],
+];
 
 export default function Pantry() {
   const { state, setPantry } = usePlan();
@@ -42,87 +45,79 @@ export default function Pantry() {
     setQuantity("");
   }
 
+  const missing = SUGGESTIONS.filter(([n]) => !state.pantry.some((p) => p.name.toLowerCase() === n.toLowerCase()));
+
   return (
     <section className="stack">
-      <div>
+      <div className="page__head">
         <h2>¿Qué tienes en la nevera y la despensa?</h2>
-        <p className="muted">
-          Añade los alimentos que ya tienes. La IA los aprovechará al máximo para proponerte menús.
+        <p className="page__lede">
+          Añade lo que ya tienes. La IA lo aprovechará al máximo para proponerte menús.
         </p>
       </div>
 
-      <form className="card row" onSubmit={onSubmit}>
-        <label className="field" style={{ flex: "2 1 200px" }}>
-          Alimento
-          <input
-            type="text"
-            value={name}
-            onChange={(e) => setName(e.target.value)}
-            placeholder="p. ej. Huevos"
-          />
-        </label>
-        <label className="field" style={{ flex: "1 1 140px" }}>
-          Cantidad <span className="hint">(opcional)</span>
-          <input
-            type="text"
-            value={quantity}
-            onChange={(e) => setQuantity(e.target.value)}
-            placeholder="p. ej. 6 unidades"
-          />
-        </label>
-        <button className="primary" type="submit" style={{ alignSelf: "end" }} disabled={!name.trim()}>
-          Añadir
-        </button>
-      </form>
+      <div className="pantry">
+        <div className="stack">
+          <form className="form-block stack" onSubmit={onSubmit}>
+            <label className="field">
+              Alimento
+              <input className="input" type="text" value={name} onChange={(e) => setName(e.target.value)}
+                placeholder="p. ej. Huevos" />
+            </label>
+            <label className="field">
+              <span>Cantidad <span className="field__hint">(opcional)</span></span>
+              <input className="input" type="text" value={quantity} onChange={(e) => setQuantity(e.target.value)}
+                placeholder="p. ej. 6 unidades" />
+            </label>
+            <button className="btn btn--primary" type="submit" disabled={!name.trim()}>Añadir a la despensa</button>
+          </form>
 
-      <div>
-        <p className="small muted">Añadir rápido:</p>
-        <div className="chips">
-          {SUGGESTIONS.filter((s) => !state.pantry.some((p) => p.name.toLowerCase() === s.toLowerCase())).map((s) => (
-            <button key={s} type="button" onClick={() => void addItem(s)}>
-              + {s}
-            </button>
-          ))}
-        </div>
-      </div>
-
-      <ErrorBox message={error} />
-
-      <div className="card">
-        <div className="row spread">
-          <h3>Tu despensa ({state.pantry.length})</h3>
-          {state.pantry.length > 0 && (
-            <button className="link" onClick={() => void clearAll()}>
-              Vaciar
-            </button>
+          {missing.length > 0 && (
+            <div className="stack stack--tight">
+              <p className="small muted">Añadir rápido</p>
+              <div className="chips">
+                {missing.map(([n, e]) => (
+                  <button key={n} type="button" className="suggest" onClick={() => void addItem(n)}>
+                    <span aria-hidden="true">{e}</span> {n}
+                  </button>
+                ))}
+              </div>
+            </div>
           )}
         </div>
-        {state.pantry.length === 0 ? (
-          <p className="muted">Todavía no has añadido nada.</p>
-        ) : (
-          <ul className="clean">
-            {state.pantry.map((p) => (
-              <li key={p.id}>
-                <span className="grow">
-                  <strong>{p.name}</strong>
-                  {p.quantity && <span className="muted"> · {p.quantity}</span>}
-                </span>
-                <button
-                  className="link"
-                  aria-label={`Quitar ${p.name}`}
-                  onClick={() => void removeItem(p.id)}
-                >
-                  Quitar
-                </button>
-              </li>
-            ))}
-          </ul>
-        )}
+
+        <div className="stack">
+          <ErrorBox message={error} />
+          <div className="pantry__list">
+            <div className="pantry__list-head">
+              <h3>Tu despensa ({state.pantry.length})</h3>
+              {state.pantry.length > 0 && (
+                <button className="btn btn--quiet btn--small btn--danger" onClick={() => void clearAll()}>Vaciar</button>
+              )}
+            </div>
+            {state.pantry.length === 0 ? (
+              <p className="empty">Todavía no has añadido nada. Empieza con lo que tengas a mano.</p>
+            ) : (
+              <div>
+                {state.pantry.map((p) => (
+                  <div className="pantry__row" key={p.id}>
+                    <span className="grow">
+                      <span className="pantry__name">{p.name}</span>
+                      {p.quantity && <span className="pantry__qty"> {p.quantity}</span>}
+                    </span>
+                    <button className="btn btn--quiet btn--small btn--danger" aria-label={`Quitar ${p.name}`}
+                      onClick={() => void removeItem(p.id)}>Quitar</button>
+                  </div>
+                ))}
+              </div>
+            )}
+          </div>
+        </div>
       </div>
 
-      <div className="row end">
-        <button className="primary" disabled={state.pantry.length === 0} onClick={() => navigate("/preferencias")}>
-          Siguiente: preferencias →
+      <div className="actions actions--end">
+        <button className="btn btn--primary" disabled={state.pantry.length === 0} onClick={() => navigate("/preferencias")}>
+          Siguiente: preferencias
         </button>
       </div>
     </section>

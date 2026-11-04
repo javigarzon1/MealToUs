@@ -3,12 +3,9 @@ import ReactDOM from "react-dom/client";
 import { BrowserRouter } from "react-router-dom";
 import App from "./App";
 import { AuthProvider } from "./state/AuthState";
-import "../CSS/index.css";
-import "../CSS/header.css";
-import "../CSS/form&button.css";
-import "../CSS/warnings&labels.css";
-import "../CSS/menu&dish.css";
-import "../CSS/chat.css";
+import "./styles/base.css";
+import "./styles/layout.css";
+import "./styles/components.css";
 
 
 ReactDOM.createRoot(document.getElementById("root")!).render(

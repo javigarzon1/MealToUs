@@ -1,6 +1,7 @@
 import { useState } from "react";
 import type { FormEvent } from "react";
 import { Link } from "react-router-dom";
+import AuthShell from "../components/AuthShell";
 import { ErrorBox } from "../components/Feedback";
 import { useAction } from "../hooks/useAction";
 import { useAuth } from "../state/AuthState";
@@ -23,53 +24,38 @@ export default function Login() {
   }
 
   return (
-    <div className="auth-wrap">
-      <form className="card auth-card stack" onSubmit={onSubmit} noValidate>
+    <AuthShell>
+      <form className="stack" onSubmit={onSubmit} noValidate>
         <div>
-          <div className="brand">Meal<span>To</span>Us</div>
-          <h2>Inicia sesión</h2>
+          <h1>Inicia sesión</h1>
           <p className="muted">Entra para planificar tus menús y tu compra.</p>
         </div>
 
         <label className="field">
           Email
-          <input
-            type="email"
-            autoComplete="email"
-            value={email}
-            onChange={(e) => setEmail(e.target.value)}
-            required
-            autoFocus
-          />
+          <input className="input" type="email" autoComplete="email" value={email}
+            onChange={(e) => setEmail(e.target.value)} required autoFocus />
         </label>
 
         <label className="field">
           Contraseña
-          <input
-            type="password"
-            autoComplete="current-password"
-            value={password}
-            onChange={(e) => setPassword(e.target.value)}
-            required
-          />
-          <span className="hint">
+          <input className="input" type="password" autoComplete="current-password" value={password}
+            onChange={(e) => setPassword(e.target.value)} required />
+          <span className="field__hint">
             <Link to="/olvide-contrasena">¿Has olvidado tu contraseña?</Link>
           </span>
         </label>
 
         <ErrorBox message={formError ?? error} />
 
-        <button className="primary" type="submit" disabled={loading} style={{ justifyContent: "center" }}>
+        <button className="btn btn--primary" type="submit" disabled={loading}>
           {loading ? "Entrando…" : "Entrar"}
         </button>
-
-        <div className="stack" style={{ borderTop: "1px solid var(--line)", paddingTop: "1rem" }}>
-          <p className="small muted" style={{ margin: 0 }}>¿Todavía no tienes cuenta?</p>
-          <Link className="btn" to="/registro" style={{ justifyContent: "center" }}>
-            Crear cuenta
-          </Link>
-        </div>
       </form>
-    </div>
+      <div className="auth__alt">
+        <p className="small muted">¿Todavía no tienes cuenta?</p>
+        <Link className="btn" to="/registro">Crear cuenta</Link>
+      </div>
+    </AuthShell>
   );
 }

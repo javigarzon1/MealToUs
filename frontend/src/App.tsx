@@ -10,6 +10,7 @@ import Login from "./pages/Login";
 import Register from "./pages/Register";
 import ForgotPassword from "./pages/ForgotPassword";
 import ResetPassword from "./pages/ResetPassword";
+import Brand from "./components/Brand";
 import { Loading } from "./components/Feedback";
 import { useAuth } from "./state/AuthState";
 import { PlanProvider, usePlan } from "./state/PlanState";
@@ -30,35 +31,33 @@ function Shell() {
 
   return (
     <>
-      <header className="app-header">
-        <div className="app-header-inner">
-          <div className="brand-row">
-            <div className="brand" style={{ display: "flex", alignItems: "center", gap: ".5rem" }}>
-              <img src="/logo.svg" alt="" width={32} height={32} />
-              <span>Meal<span>To</span>Us</span>
-            </div>
+      <header className="topbar">
+        <div className="topbar__inner">
+          <div className="topbar__row">
+            <Brand />
             <div className="userbar">
-              <span className="who muted small" title={user?.email}>{user?.email}</span>
-              <button className="link" onClick={() => void logout()}>Salir</button>
+              <span className="userbar__who" title={user?.email}>{user?.email}</span>
+              <button className="btn btn--quiet btn--small" onClick={() => void logout()}>Salir</button>
             </div>
           </div>
-          <nav className="steps" aria-label="Pasos">
-            {steps.map((s, i) => (
-              <NavLink
-                key={s.to}
-                to={s.to}
-                end
-                className={({ isActive }) => `step${isActive ? " active" : ""}${s.done ? " done" : ""}`}
-              >
-                <span className="dot">{s.done ? "✓" : i + 1}</span>
-                <span className="label">{s.label}</span>
-              </NavLink>
-            ))}
-            <NavLink
-              to="/chat"
-              className={({ isActive }) => `step chat${isActive ? " active" : ""}`}
-            >
-              <span className="label">💬 Asistente</span>
+          <nav className="journey" aria-label="Pasos">
+            <ol className="journey__list">
+              {steps.map((s, i) => (
+                <li key={s.to}>
+                  <NavLink
+                    to={s.to}
+                    end
+                    className={({ isActive }) => `step${isActive ? " is-active" : ""}${s.done ? " is-done" : ""}`}
+                  >
+                    <span className="step__dot">{s.done ? "✓" : i + 1}</span>
+                    <span className="step__label">{s.label}</span>
+                  </NavLink>
+                </li>
+              ))}
+            </ol>
+            <span className="journey__spacer" />
+            <NavLink to="/chat" className={({ isActive }) => `step step--chat${isActive ? " is-active" : ""}`}>
+              <span className="step__label">Asistente</span>
             </NavLink>
           </nav>
         </div>
@@ -88,7 +87,7 @@ export default function App() {
 
   if (loading) {
     return (
-      <div className="auth-wrap">
+      <div className="auth__panel" style={{ minHeight: "100vh" }}>
         <Loading text="Comprobando tu sesión…" />
       </div>
     );
