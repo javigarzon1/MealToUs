@@ -47,7 +47,10 @@
   --t-xl: 1.9rem;
   --t-2xl: clamp(2.1rem, 4.6vw, 3.1rem);
 
-  --bg-pattern: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='160' height='160'%3E%3Ccircle cx='24' cy='28' r='7' fill='%23ffd9a8' opacity='.55'/%3E%3Ccircle cx='110' cy='70' r='11' fill='%23c9f0c8' opacity='.6'/%3E%3Cpath d='M70 120q10-14 20 0t20 0' fill='none' stroke='%23cfd8ff' stroke-width='6' stroke-linecap='round' opacity='.7'/%3E%3Ccircle cx='38' cy='128' r='5' fill='%23ff6b3d' opacity='.25'/%3E%3C/svg%3E");
+  --bg-pattern:
+    radial-gradient(60rem 40rem at 105% -10%, #ffd0b0 0%, transparent 60%),
+    radial-gradient(50rem 36rem at -10% 10%, #c9f0d6 0%, transparent 60%),
+    radial-gradient(46rem 34rem at 60% 115%, #d8ddff 0%, transparent 62%);
   --ease: cubic-bezier(0.2, 0.7, 0.2, 1);
 }
 
@@ -91,7 +94,9 @@ html { -webkit-text-size-adjust: 100%; }
 
 body {
   margin: 0;
-  background: var(--bg) var(--bg-pattern) fixed;
+  background-color: var(--bg);
+  background-image: var(--bg-pattern);
+  background-attachment: fixed;
   color: var(--ink);
   font-family: var(--font-ui);
   font-size: var(--t-base);
