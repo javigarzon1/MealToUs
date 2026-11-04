@@ -246,7 +246,7 @@ input[type="checkbox"].check:checked::after {
 .topbar { background: color-mix(in srgb, var(--bg) 88%, transparent); backdrop-filter: blur(8px); }
 .brand { font-weight: 900; letter-spacing: -0.01em; }
 .brand b { color: #ff6b3d; font-weight: 900; }
-.brand img { border-radius: 11px; }
+
 .dish { background: var(--tone-tint); border: 0; box-shadow: 0 14px 0 -8px color-mix(in srgb, var(--tone) 35%, transparent); }
 .dish__band { background: transparent; padding-bottom: 0.4rem; }
 .dish__name { font-weight: 900; font-size: 1.45rem; }
