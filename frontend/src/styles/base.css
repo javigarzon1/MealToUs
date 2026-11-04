@@ -47,10 +47,7 @@
   --t-xl: 1.9rem;
   --t-2xl: clamp(2.1rem, 4.6vw, 3.1rem);
 
-  --bg-pattern:
-    radial-gradient(60rem 40rem at 105% -10%, #ffd0b0 0%, transparent 60%),
-    radial-gradient(50rem 36rem at -10% 10%, #c9f0d6 0%, transparent 60%),
-    radial-gradient(46rem 34rem at 60% 115%, #d8ddff 0%, transparent 62%);
+  --bg-pattern: url("data:image/svg+xml,%3Csvg%20xmlns=%22http://www.w3.org/2000/svg%22%20width=%22260%22%20height=%22260%22%20viewBox=%220%200%20260%20260%22%3E%3Cg%20opacity=%22.4%22%3E%3Cg%20transform=%22translate%2834%2040%29%20rotate%28-12%29%22%3E%3Ccircle%20cx=%220%22%20cy=%224%22%20r=%2217%22%20fill=%22%23ffb4a2%22/%3E%3Cpath%20d=%22M0-12l-8-6M0-12l8-6M0-12l-2-9M0-12l2-9%22%20stroke=%22%238fd19e%22%20stroke-width=%225%22%20stroke-linecap=%22round%22/%3E%3C/g%3E%3Cg%20transform=%22translate%28130%2030%29%20rotate%2835%29%22%3E%3Cpath%20d=%22M-9-24h18l-9%2052z%22%20fill=%22%23ffc48a%22/%3E%3Cpath%20d=%22M0-24l-9-12M0-24l0-14M0-24l9-12%22%20stroke=%22%238fd19e%22%20stroke-width=%225%22%20stroke-linecap=%22round%22/%3E%3C/g%3E%3Cg%20transform=%22translate%28212%2052%29%20rotate%2810%29%22%3E%3Ccircle%20cx=%22-8%22%20cy=%220%22%20r=%2213%22%20fill=%22%23b5e6b0%22/%3E%3Ccircle%20cx=%228%22%20cy=%220%22%20r=%2213%22%20fill=%22%23b5e6b0%22/%3E%3Ccircle%20cx=%220%22%20cy=%22-11%22%20r=%2213%22%20fill=%22%23b5e6b0%22/%3E%3Cpath%20d=%22M-5%208h10l-2%2018h-6z%22%20fill=%22%23d6efc6%22/%3E%3C/g%3E%3Cg%20transform=%22translate%2860%20128%29%20rotate%2820%29%22%3E%3Cellipse%20cx=%220%22%20cy=%220%22%20rx=%2224%22%20ry=%2215%22%20fill=%22%23ffe58f%22/%3E%3Cpath%20d=%22M-24%200l-7%200M24%200l7%200%22%20stroke=%22%23ffe58f%22%20stroke-width=%226%22%20stroke-linecap=%22round%22/%3E%3C/g%3E%3Cg%20transform=%22translate%28160%20118%29%20rotate%28-20%29%22%3E%3Cpath%20d=%22M-10-16q-12%2014-6%2030q8%2010%2018-2q8-14-4-28z%22%20fill=%22%23cbb8f0%22/%3E%3Cpath%20d=%22M-10-16q2-8%208-10%22%20stroke=%22%238fd19e%22%20stroke-width=%226%22%20stroke-linecap=%22round%22%20fill=%22none%22/%3E%3C/g%3E%3Cg%20transform=%22translate%28226%20150%29%20rotate%288%29%22%3E%3Cpath%20d=%22M0-14c10-12%2026-4%2022%2012c-3%2014-16%2020-22%2020c-6%200-19-6-22-20c-4-16%2012-24%2022-12z%22%20fill=%22%23ff9d94%22/%3E%3Cpath%20d=%22M0-14q0-8%206-12%22%20stroke=%22%238fd19e%22%20stroke-width=%225%22%20stroke-linecap=%22round%22%20fill=%22none%22/%3E%3C/g%3E%3Cg%20transform=%22translate%2830%20214%29%20rotate%28-8%29%22%3E%3Cpath%20d=%22M0-22c10%200%2014%2010%2014%2020c0%2014%2010%2014%2010%2024c0%2012-12%2016-24%2016s-24-4-24-16c0-10%2010-10%2010-24c0-10%204-20%2014-20z%22%20fill=%22%23d9eb9a%22/%3E%3Cpath%20d=%22M0-22q2-8%208-9%22%20stroke=%22%238fd19e%22%20stroke-width=%225%22%20stroke-linecap=%22round%22%20fill=%22none%22/%3E%3C/g%3E%3Cg%20transform=%22translate%28120%20206%29%20rotate%2815%29%22%3E%3Cpath%20d=%22M-16-10c6-8%2026-8%2032%200c4%2014-6%2030-16%2030s-20-16-16-30z%22%20fill=%22%23ff8f80%22/%3E%3Cpath%20d=%22M-10-12q10-8%2020%200%22%20stroke=%22%238fd19e%22%20stroke-width=%225%22%20stroke-linecap=%22round%22%20fill=%22none%22/%3E%3C/g%3E%3Cg%20transform=%22translate%28210%20222%29%20rotate%28-25%29%22%3E%3Ccircle%20cx=%220%22%20cy=%220%22%20r=%2216%22%20fill=%22%23ffd27a%22/%3E%3Cpath%20d=%22M-16%200h32M0-16v32%22%20stroke=%22%23fff4e0%22%20stroke-width=%223%22/%3E%3C/g%3E%3C/g%3E%3C/svg%3E");
   --ease: cubic-bezier(0.2, 0.7, 0.2, 1);
 }
 
@@ -97,6 +94,7 @@ body {
   background-color: var(--bg);
   background-image: var(--bg-pattern);
   background-attachment: fixed;
+  background-size: 360px 360px;
   color: var(--ink);
   font-family: var(--font-ui);
   font-size: var(--t-base);
