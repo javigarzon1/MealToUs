@@ -18,7 +18,7 @@ export default function LunchOptions() {
   return (
     <section className="stack">
       <div className="page__head">
-        <h2>Elige tu comida</h2>
+        <h2>¿Qué comemos hoy?</h2>
         <p className="page__lede">
           La IA propone tres opciones con lo que tienes: Healthy, Normal y Deportista. La que elijas fija
           las calorías de referencia para el resto de la semana.

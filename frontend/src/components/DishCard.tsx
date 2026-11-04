@@ -6,6 +6,8 @@ export const DIET_LABEL: Record<DietType, string> = {
   sport: "Deportista",
 };
 
+const DIET_EMOJI: Record<DietType, string> = { healthy: "🥗", normal: "🍳", sport: "🍗" };
+
 export function fmt(n: number): string {
   return String(Math.round(n * 10) / 10);
 }
@@ -25,6 +27,7 @@ export default function DishCard({ dish, selected, index = 0, onChoose }: Props)
       style={{ ["--i" as string]: index }}
     >
       <div className="dish__band">
+        <div className="dish__emoji" aria-hidden="true">{DIET_EMOJI[dish.diet_type] ?? "🍽️"}</div>
         <div className="dish__kind">{DIET_LABEL[dish.diet_type] ?? dish.diet_type}</div>
         <h3 className="dish__name">{dish.name}</h3>
       </div>
@@ -51,7 +54,7 @@ export default function DishCard({ dish, selected, index = 0, onChoose }: Props)
         {onChoose && (
           <div className="dish__foot">
             <button className={`btn ${selected ? "" : "btn--primary"}`} onClick={onChoose} aria-pressed={!!selected}>
-              {selected ? "Elegida" : "Elegir esta"}
+              {selected ? "Elegida" : "Me la pido"}
             </button>
           </div>
         )}
