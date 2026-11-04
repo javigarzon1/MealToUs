@@ -1,0 +1,61 @@
+# Despliegue en Render (Blueprint): backend privado con disco + web con nginx que reenvía /api.
+# Las claves marcadas con sync: false se piden al crear el Blueprint en el panel de Render.
+services:
+  - type: pserv
+    name: mealtous-api
+    runtime: docker
+    dockerfilePath: ./backend/Dockerfile
+    dockerContext: ./backend
+    plan: starter            # el disco persistente exige un plan de pago
+    disk:
+      name: mealtous-data
+      mountPath: /data
+      sizeGB: 1
+    envVars:
+      - key: PORT
+        value: "8000"
+      - key: DATABASE_URL
+        value: sqlite:////data/mealtous.db
+      - key: SECRET_KEY
+        generateValue: true
+      - key: COOKIE_SECURE
+        value: "true"
+      - key: ALLOW_REGISTRATION
+        value: "true"
+      - key: LLM_PROVIDER
+        value: openai
+      - key: LLM_BASE_URL
+        value: https://api.groq.com/openai/v1
+      - key: LLM_MODEL
+        value: openai/gpt-oss-120b
+      - key: OPENAI_API_KEY
+        sync: false
+      - key: ANTHROPIC_API_KEY
+        sync: false
+      - key: APP_BASE_URL
+        sync: false          # la URL pública de la web, p. ej. https://mealtous.onrender.com
+      - key: SMTP_HOST
+        sync: false
+      - key: SMTP_PORT
+        value: "587"
+      - key: SMTP_USER
+        sync: false
+      - key: SMTP_PASSWORD
+        sync: false
+      - key: SMTP_FROM
+        sync: false
+
+  - type: web
+    name: mealtous
+    runtime: docker
+    dockerfilePath: ./frontend/Dockerfile
+    dockerContext: ./frontend
+    plan: free               # se duerme tras 15 min sin visitas; sube a starter si molesta
+    envVars:
+      - key: PORT
+        value: "10000"
+      - key: BACKEND_HOST
+        fromService:
+          type: pserv
+          name: mealtous-api
+          property: hostport
