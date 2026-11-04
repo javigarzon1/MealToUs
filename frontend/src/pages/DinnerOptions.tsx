@@ -20,7 +20,7 @@ export default function DinnerOptions() {
   return (
     <section className="stack">
       <div className="page__head">
-        <h2>Elige tu cena</h2>
+        <h2>¿Y qué cenamos?</h2>
         <p className="page__lede">Tres opciones de cena que complementan la comida que has elegido.</p>
       </div>
 
