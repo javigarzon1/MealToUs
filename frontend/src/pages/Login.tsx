@@ -26,11 +26,6 @@ export default function Login() {
   return (
     <AuthShell>
       <form className="stack" onSubmit={onSubmit} noValidate>
-        <div>
-          <h1>Inicia sesión</h1>
-          <p className="muted">Entra para planificar tus menús y tu compra.</p>
-        </div>
-
         <label className="field">
           Email
           <input className="input" type="email" autoComplete="email" value={email}
@@ -41,9 +36,6 @@ export default function Login() {
           Contraseña
           <input className="input" type="password" autoComplete="current-password" value={password}
             onChange={(e) => setPassword(e.target.value)} required />
-          <span className="field__hint">
-            <Link to="/olvide-contrasena">¿Has olvidado tu contraseña?</Link>
-          </span>
         </label>
 
         <ErrorBox message={formError ?? error} />
@@ -52,10 +44,10 @@ export default function Login() {
           {loading ? "Entrando…" : "Entrar"}
         </button>
       </form>
-      <div className="auth__alt">
-        <p className="small muted">¿Todavía no tienes cuenta?</p>
-        <Link className="btn" to="/registro">Crear cuenta</Link>
-      </div>
+      <p className="auth__links small">
+        <Link to="/olvide-contrasena">Olvidé mi contraseña</Link>
+        <Link to="/registro">Crear cuenta</Link>
+      </p>
     </AuthShell>
   );
 }
