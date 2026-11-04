@@ -7,6 +7,7 @@ from fastapi.middleware.cors import CORSMiddleware
 from app.api import auth, menus, pantry, preferences, shopping
 from app.api.deps import get_current_user
 from app.core.config import settings
+from app.core.static import mount_frontend
 from app.db.migrate import ensure_columns
 from app.db.session import Base, engine
 from app.models import pantry as _pantry_model  # noqa: F401  (registra la tabla)
@@ -38,3 +39,7 @@ for r in (pantry.router, preferences.router, menus.router, shopping.router):
 @app.get("/health")
 def health():
     return {"status": "ok"}
+
+
+# Debe ir al final: la ruta comodín solo atiende lo que no es API ni /health
+mount_frontend(app, settings.static_dir)

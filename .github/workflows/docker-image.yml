@@ -20,3 +20,7 @@ jobs:
         run: docker compose build
         env:
           SECRET_KEY: clave-solo-para-ci
+
+      # La imagen única que usa Render (backend + web)
+      - name: Build imagen de Render
+        run: docker build -t mealtous-render .

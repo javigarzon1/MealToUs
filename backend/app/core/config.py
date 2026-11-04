@@ -1,3 +1,4 @@
+from pydantic import field_validator
 from pydantic_settings import BaseSettings, SettingsConfigDict
 
 
@@ -6,6 +7,8 @@ class Settings(BaseSettings):
 
     app_name: str = "MealToUs"
     database_url: str = "sqlite:///./mealtous.db"
+    # Carpeta con la web ya compilada (index.html). Si existe, el backend la sirve él mismo.
+    static_dir: str = ""
     cors_origins: list[str] = ["http://localhost:5173"]
 
     llm_provider: str = "anthropic"  # anthropic | openai
@@ -14,6 +17,15 @@ class Settings(BaseSettings):
     openai_api_key: str = ""
     # Para proveedores compatibles con la API de OpenAI (Gemini, Groq...). Vacío = OpenAI.
     llm_base_url: str = ""
+
+    @field_validator("database_url")
+    @classmethod
+    def use_psycopg_driver(cls, v: str) -> str:
+        """Neon, Supabase o Render dan `postgres://...`; SQLAlchemy necesita indicar el driver."""
+        for prefix in ("postgres://", "postgresql://"):
+            if v.startswith(prefix):
+                return "postgresql+psycopg://" + v[len(prefix):]
+        return v
 
     # --- Autenticación ---
     # Clave para firmar las sesiones. Genera una con:
