@@ -96,7 +96,9 @@ export default function Preferences() {
             className="btn btn--primary"
             disabled={loading}
             onClick={async () => {
-              if (await save()) navigate("/comida");
+              // Si cambiaste algo, la comida se vuelve a generar aunque ya hubiera opciones
+              const changed = !!draft;
+              if (await save()) navigate("/comida", { state: { auto: true, force: changed } });
             }}
           >
             Siguiente: comida

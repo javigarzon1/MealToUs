@@ -18,6 +18,14 @@ class Recipe(BaseModel):
     steps: list[str]
 
 
+class ShoppingList(BaseModel):
+    shopping_list: list[ShoppingItem]
+
+
+class RecipeList(BaseModel):
+    recipes: list[Recipe]
+
+
 class ShoppingResult(BaseModel):
     shopping_list: list[ShoppingItem]
     recipes: list[Recipe]

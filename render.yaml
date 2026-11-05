@@ -23,8 +23,19 @@ services:
         value: https://api.groq.com/openai/v1
       - key: LLM_MODEL
         value: openai/gpt-oss-120b
+      - key: LLM_MAX_TOKENS
+        value: "5000"        # Groq gratuito: 8000 tokens/minuto; Groq cuenta lo que se pide
       - key: OPENAI_API_KEY
         sync: false          # clave de Groq
+      # Segundo proveedor, solo para la lista de la compra (Gemini por su API compatible con OpenAI)
+      - key: SHOPPING_LLM_PROVIDER
+        value: openai
+      - key: SHOPPING_LLM_BASE_URL
+        value: https://generativelanguage.googleapis.com/v1beta/openai/
+      - key: SHOPPING_LLM_MODEL
+        sync: false          # nombre exacto de un modelo Gemini
+      - key: SHOPPING_LLM_API_KEY
+        sync: false          # clave de Gemini
       - key: APP_BASE_URL
         sync: false          # URL pública, p. ej. https://mealtous.onrender.com
       - key: SMTP_HOST

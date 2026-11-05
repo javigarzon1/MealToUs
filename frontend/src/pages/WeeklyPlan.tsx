@@ -4,6 +4,7 @@ import { DIET_LABEL } from "../components/DishCard";
 import { ErrorBox, Loading, Missing } from "../components/Feedback";
 import { useAction } from "../hooks/useAction";
 import { usePlan } from "../state/PlanState";
+import { dayEs } from "../utils/days";
 
 export default function WeeklyPlan() {
   const { state, apiContext, setPlan, setShopping } = usePlan();
@@ -68,7 +69,7 @@ export default function WeeklyPlan() {
               const pct = Math.min(100, Math.round((total / Math.max(1, plan.target_kcal_per_day)) * 100));
               return (
                 <article key={d.day} className={`day day--${plan.diet_type}`}>
-                  <h3 className="day__name">{d.day}</h3>
+                  <h3 className="day__name">{dayEs(d.day)}</h3>
                   <div>
                     <div className="meal__when">Comida</div>
                     <div className="meal__name">{d.lunch.name}</div>

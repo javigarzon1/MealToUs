@@ -14,6 +14,13 @@ Neon, fuera de Render, porque el disco del plan gratuito se borra al reiniciar.
    Los enlaces de recuperar contraseña la usan.
 5. Abre la URL y crea tu cuenta. Después puedes poner `ALLOW_REGISTRATION=false` para cerrar el alta.
 
+## Dos proveedores de IA (opcional)
+Groq genera todo menos la lista de la compra, que puede ir a otro proveedor para repartir la cuota.
+En Render, en **Environment**, rellena `SHOPPING_LLM_MODEL` (nombre exacto de un modelo Gemini) y
+`SHOPPING_LLM_API_KEY` (clave de [aistudio.google.com/apikey](https://aistudio.google.com/apikey)).
+Si dejas `SHOPPING_LLM_PROVIDER` vacío, todo va a Groq. `LLM_MAX_TOKENS=5000` evita pasarse del límite de
+8000 tokens por minuto de Groq gratuito.
+
 ## Límites del plan gratuito
 - El servicio se duerme tras 15 minutos sin visitas; la primera carga tarda cerca de un minuto.
 - Las tablas se crean solas al arrancar la primera vez.

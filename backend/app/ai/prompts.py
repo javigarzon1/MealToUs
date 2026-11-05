@@ -29,13 +29,18 @@ TASK_DINNER = (
 
 TASK_WEEKLY = (
     "Diseña el menú de los próximos 7 días (lunes a domingo): una comida y una cena por día, "
-    "un plato cada uno. El tipo de dieta es '{diet}' y el objetivo es ~{kcal} kcal/día "
+    "un plato cada uno. Escribe el campo 'day' en español (lunes, martes, miércoles, jueves, viernes, sábado, domingo). El tipo de dieta es '{diet}' y el objetivo es ~{kcal} kcal/día "
     "(comida + cena), con una desviación máxima del 10%. Varía los platos, evita repetir y "
     "usa como base la comida y cena elegidas: {lunch} / {dinner}."
 )
 
-TASK_SHOPPING = (
-    "A partir del menú semanal, genera: (1) la lista de la compra con SOLO lo que no está ya "
-    "en la despensa, sumando cantidades y escalando a {people} persona(s), agrupada por "
-    "categoría; (2) la receta de cada plato distinto del menú, escalada a {people} persona(s)."
+TASK_SHOPPING_LIST = (
+    "A partir del menú semanal, genera SOLO la lista de la compra: lo que no está ya en la "
+    "despensa, sumando cantidades de todo el menú y escalando a {people} persona(s), agrupada "
+    "por categoría (frutas, verduras, carnes, pescados, lácteos, despensa...). No incluyas recetas."
+)
+
+TASK_RECIPES = (
+    "Escribe la receta de cada plato distinto de la lista, escalada a {people} persona(s): "
+    "ingredientes con cantidades y pasos breves y claros. No incluyas la lista de la compra."
 )

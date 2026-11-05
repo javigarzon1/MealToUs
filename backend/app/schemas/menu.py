@@ -1,6 +1,6 @@
 from enum import Enum
 
-from pydantic import BaseModel, Field
+from pydantic import BaseModel, Field, field_validator
 
 
 class DietType(str, Enum):
@@ -28,10 +28,26 @@ class DishOptions(BaseModel):
     options: list[Dish] = Field(min_length=3, max_length=3)
 
 
+_DAYS_ES = {
+    "monday": "lunes", "tuesday": "martes", "wednesday": "miércoles", "thursday": "jueves",
+    "friday": "viernes", "saturday": "sábado", "sunday": "domingo",
+    "mon": "lunes", "tue": "martes", "wed": "miércoles", "thu": "jueves",
+    "fri": "viernes", "sat": "sábado", "sun": "domingo",
+    "miercoles": "miércoles", "sabado": "sábado",
+}
+
+
 class DayPlan(BaseModel):
     day: str
     lunch: Dish
     dinner: Dish
+
+    @field_validator("day")
+    @classmethod
+    def day_in_spanish(cls, v: str) -> str:
+        """Si el modelo devuelve el día en inglés, se pasa a castellano."""
+        key = v.strip().lower().rstrip(".")
+        return _DAYS_ES.get(key, key)
 
 
 class WeeklyPlan(BaseModel):

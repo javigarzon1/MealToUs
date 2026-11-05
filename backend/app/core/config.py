@@ -21,6 +21,14 @@ class Settings(BaseSettings):
     # de tokens por minuto: Groq cuenta lo que PIDES, no solo lo que se genera.
     llm_max_tokens: int = 0
 
+    # Segundo proveedor opcional SOLO para la lista de la compra (p. ej. Gemini). Si
+    # SHOPPING_LLM_PROVIDER está vacío, la lista se genera con el proveedor principal.
+    shopping_llm_provider: str = ""      # anthropic | openai
+    shopping_llm_model: str = ""
+    shopping_llm_api_key: str = ""
+    shopping_llm_base_url: str = ""
+    shopping_llm_max_tokens: int = 0
+
     @field_validator("database_url")
     @classmethod
     def use_psycopg_driver(cls, v: str) -> str:
