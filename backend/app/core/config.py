@@ -17,6 +17,9 @@ class Settings(BaseSettings):
     openai_api_key: str = ""
     # Para proveedores compatibles con la API de OpenAI (Gemini, Groq...). Vacío = OpenAI.
     llm_base_url: str = ""
+    # Tope de tokens de respuesta por petición (0 = sin tope). Útil en planes gratuitos con límite
+    # de tokens por minuto: Groq cuenta lo que PIDES, no solo lo que se genera.
+    llm_max_tokens: int = 0
 
     @field_validator("database_url")
     @classmethod

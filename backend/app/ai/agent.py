@@ -80,12 +80,12 @@ class MealAgent:
             diet=lunch.diet_type.value, kcal=kcal, lunch=lunch.name, dinner=dinner.name,
         )
         return self._run(task, self._base(ctx.pantry, ctx.preferences),
-                         WeeklyPlan, ctx.preferences, max_tokens=8000)
+                         WeeklyPlan, ctx.preferences, max_tokens=6000)
 
     def build_shopping_and_recipes(self, ctx: PlanContext, plan: WeeklyPlan) -> ShoppingResult:
         task = prompts.TASK_SHOPPING.format(people=ctx.preferences.people)
         payload = {**self._base(ctx.pantry, ctx.preferences), "menu": plan.model_dump(mode="json")}
-        return self._run(task, payload, ShoppingResult, ctx.preferences, max_tokens=8000)
+        return self._run(task, payload, ShoppingResult, ctx.preferences, max_tokens=6000)
 
     def chat(self, messages: list[dict], context: Optional[PlanContext] = None) -> str:
         system = prompts.CHAT_SYSTEM_PROMPT
