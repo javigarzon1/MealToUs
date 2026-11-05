@@ -4,6 +4,12 @@ from abc import ABC, abstractmethod
 from app.core.config import settings
 
 
+def capped(max_tokens: int) -> int:
+    """Aplica LLM_MAX_TOKENS (si está definido) como tope de la respuesta."""
+    cap = settings.llm_max_tokens
+    return min(max_tokens, cap) if cap > 0 else max_tokens
+
+
 class LLMClient(ABC):
     @abstractmethod
     def complete(self, system: str, messages: list[dict], max_tokens: int = 2000) -> str:
@@ -19,7 +25,7 @@ class AnthropicClient(LLMClient):
     def complete(self, system: str, messages: list[dict], max_tokens: int = 2000) -> str:
         resp = self._client.messages.create(
             model=settings.llm_model,
-            max_tokens=max_tokens,
+            max_tokens=capped(max_tokens),
             system=system,
             messages=messages,
         )
@@ -42,14 +48,14 @@ class OpenAIClient(LLMClient):
         try:
             # Los modelos nuevos de OpenAI y Groq piden max_completion_tokens...
             resp = self._client.chat.completions.create(
-                model=settings.llm_model, max_completion_tokens=max_tokens, messages=full
+                model=settings.llm_model, max_completion_tokens=capped(max_tokens), messages=full
             )
         except BadRequestError as exc:
             if "max_completion_tokens" not in str(exc):
                 raise
             # ...y algunos proveedores compatibles solo conocen max_tokens
             resp = self._client.chat.completions.create(
-                model=settings.llm_model, max_tokens=max_tokens, messages=full
+                model=settings.llm_model, max_tokens=capped(max_tokens), messages=full
             )
         return resp.choices[0].message.content or ""
 
