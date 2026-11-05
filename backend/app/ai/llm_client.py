@@ -11,6 +11,16 @@ def capped(max_tokens: int, cap: Optional[int] = None) -> int:
     return min(max_tokens, limit) if limit > 0 else max_tokens
 
 
+def _tag(exc: Exception, label: str) -> Exception:
+    """Añade al mensaje del proveedor qué modelo y host fallaron (sin claves), conservando el tipo."""
+    base = getattr(exc, "message", None) or str(exc)
+    try:
+        exc.message = f"[{label}] {base}"
+    except Exception:
+        pass
+    return exc
+
+
 class LLMClient(ABC):
     @abstractmethod
     def complete(self, system: str, messages: list[dict], max_tokens: int = 2000) -> str:
@@ -27,12 +37,15 @@ class AnthropicClient(LLMClient):
         self._cap = cap
 
     def complete(self, system: str, messages: list[dict], max_tokens: int = 2000) -> str:
-        resp = self._client.messages.create(
-            model=self._model,
-            max_tokens=capped(max_tokens, self._cap),
-            system=system,
-            messages=messages,
-        )
+        try:
+            resp = self._client.messages.create(
+                model=self._model,
+                max_tokens=capped(max_tokens, self._cap),
+                system=system,
+                messages=messages,
+            )
+        except Exception as exc:
+            raise _tag(exc, f"modelo {self._model} en anthropic") from None
         return "".join(b.text for b in resp.content if b.type == "text")
 
 
@@ -47,12 +60,21 @@ class OpenAIClient(LLMClient):
         )
         self._model = model or settings.llm_model
         self._cap = cap
+        url = (base_url if base_url is not None else settings.llm_base_url) or "api.openai.com"
+        self._host = url.split("//")[-1].split("/")[0]
 
     def complete(self, system: str, messages: list[dict], max_tokens: int = 2000) -> str:
-        from openai import BadRequestError
-
         full = [{"role": "system", "content": system}, *messages]
         limit = capped(max_tokens, self._cap)
+        label = f"modelo {self._model} en {self._host}"
+        try:
+            return self._complete(full, limit)
+        except Exception as exc:
+            raise _tag(exc, label) from None
+
+    def _complete(self, full: list[dict], limit: int) -> str:
+        from openai import BadRequestError
+
         try:
             # Los modelos nuevos de OpenAI y Groq piden max_completion_tokens...
             resp = self._client.chat.completions.create(
