@@ -1,4 +1,5 @@
-import { useNavigate } from "react-router-dom";
+import { useEffect, useRef } from "react";
+import { useLocation, useNavigate } from "react-router-dom";
 import { api } from "../api/client";
 import DishCard from "../components/DishCard";
 import { ErrorBox, Loading, Missing } from "../components/Feedback";
@@ -8,12 +9,24 @@ import { usePlan } from "../state/PlanState";
 export default function LunchOptions() {
   const { state, apiContext, setLunchOptions, chooseLunch } = usePlan();
   const navigate = useNavigate();
+  const location = useLocation();
   const { loading, error, run } = useAction();
+  const autoDone = useRef(false);
 
   async function generate() {
     const res = await run(() => api.lunchOptions(apiContext));
     if (res) setLunchOptions(res);
   }
+
+  // Al llegar desde "Siguiente: comida" se generan solas las tres opciones
+  useEffect(() => {
+    const nav = location.state as { auto?: boolean; force?: boolean } | null;
+    if (!nav?.auto || autoDone.current) return;
+    autoDone.current = true;
+    navigate(location.pathname, { replace: true, state: null }); // recargar no vuelve a generar
+    if (state.pantry.length > 0 && (nav.force || !state.lunchOptions)) void generate();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
   return (
     <section className="stack">

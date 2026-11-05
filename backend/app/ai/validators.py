@@ -3,7 +3,7 @@ import unicodedata
 
 from app.schemas.menu import DishOptions, WeeklyPlan
 from app.schemas.preferences import UserPreferences
-from app.schemas.shopping import ShoppingResult
+from app.schemas.shopping import RecipeList, ShoppingList, ShoppingResult
 
 # Amplía esta tabla: familia -> ingredientes típicos (sin tildes)
 ALLERGEN_FAMILIES: dict[str, list[str]] = {
@@ -51,6 +51,10 @@ def extract_ingredient_names(result) -> list[str]:
         names = [i.name for i in result.shopping_list]
         names += [i.name for r in result.recipes for i in r.ingredients]
         return names
+    if isinstance(result, ShoppingList):
+        return [i.name for i in result.shopping_list]
+    if isinstance(result, RecipeList):
+        return [i.name for r in result.recipes for i in r.ingredients]
     return []
 
 

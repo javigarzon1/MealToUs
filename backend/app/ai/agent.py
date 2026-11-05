@@ -4,13 +4,13 @@ from typing import Optional
 from pydantic import BaseModel
 
 from app.ai import prompts
-from app.ai.llm_client import LLMClient, get_llm_client
+from app.ai.llm_client import LLMClient, get_llm_client, get_shopping_llm_client
 from app.ai.validators import extract_ingredient_names, find_conflicts
 from app.schemas.menu import Dish, DishOptions, WeeklyPlan
 from app.schemas.pantry import PantryItem
 from app.schemas.preferences import UserPreferences
 from app.schemas.requests import PlanContext
-from app.schemas.shopping import ShoppingResult
+from app.schemas.shopping import RecipeList, ShoppingList, ShoppingResult
 
 
 class AgentError(Exception):
@@ -28,12 +28,18 @@ def extract_json(raw: str) -> dict:
 class MealAgent:
     MAX_RETRIES = 2
 
-    def __init__(self, llm: Optional[LLMClient] = None) -> None:
+    def __init__(self, llm: Optional[LLMClient] = None,
+                 shopping_llm: Optional[LLMClient] = None) -> None:
         self.llm = llm or get_llm_client()
+        # Segundo proveedor solo para la lista de la compra; si no hay, se usa el principal
+        if shopping_llm is None and llm is None:
+            shopping_llm = get_shopping_llm_client()
+        self.shopping_llm = shopping_llm or self.llm
 
     # ---- núcleo: pedir JSON, validar esquema + restricciones, reintentar con feedback ----
     def _run(self, task: str, payload: dict, model_cls: type[BaseModel],
-             prefs: UserPreferences, max_tokens: int = 4000):
+             prefs: UserPreferences, max_tokens: int = 4000,
+             llm: Optional[LLMClient] = None):
         schema = json.dumps(model_cls.model_json_schema(), ensure_ascii=False)
         user = (
             f"{task}\n\nResponde SOLO con un JSON válido que cumpla este esquema:\n{schema}"
@@ -42,7 +48,7 @@ class MealAgent:
         messages = [{"role": "user", "content": user}]
         feedback = ""
         for _ in range(self.MAX_RETRIES + 1):
-            raw = self.llm.complete(prompts.SYSTEM_PROMPT, messages, max_tokens)
+            raw = (llm or self.llm).complete(prompts.SYSTEM_PROMPT, messages, max_tokens)
             try:
                 result = model_cls.model_validate(extract_json(raw))
                 conflicts = find_conflicts(extract_ingredient_names(result), prefs)
@@ -83,9 +89,24 @@ class MealAgent:
                          WeeklyPlan, ctx.preferences, max_tokens=6000)
 
     def build_shopping_and_recipes(self, ctx: PlanContext, plan: WeeklyPlan) -> ShoppingResult:
-        task = prompts.TASK_SHOPPING.format(people=ctx.preferences.people)
-        payload = {**self._base(ctx.pantry, ctx.preferences), "menu": plan.model_dump(mode="json")}
-        return self._run(task, payload, ShoppingResult, ctx.preferences, max_tokens=6000)
+        """Dos peticiones pequeñas: la lista (proveedor de la compra) y las recetas (principal)."""
+        people = ctx.preferences.people
+        menu = plan.model_dump(mode="json")
+
+        list_payload = {**self._base(ctx.pantry, ctx.preferences), "menu": menu}
+        shopping = self._run(prompts.TASK_SHOPPING_LIST.format(people=people), list_payload,
+                             ShoppingList, ctx.preferences, max_tokens=2500, llm=self.shopping_llm)
+
+        # Las recetas solo necesitan los platos distintos del menú, no la despensa
+        dishes = {}
+        for day in menu["days"]:
+            for meal in (day["lunch"], day["dinner"]):
+                dishes.setdefault(meal["name"], meal)
+        recipes_payload = {"platos": list(dishes.values()), "preferencias": ctx.preferences.model_dump()}
+        recipes = self._run(prompts.TASK_RECIPES.format(people=people), recipes_payload,
+                            RecipeList, ctx.preferences, max_tokens=5000)
+
+        return ShoppingResult(shopping_list=shopping.shopping_list, recipes=recipes.recipes)
 
     def chat(self, messages: list[dict], context: Optional[PlanContext] = None) -> str:
         system = prompts.CHAT_SYSTEM_PROMPT
