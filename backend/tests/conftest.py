@@ -9,7 +9,8 @@ from app.core.config import settings
 from app.core.rate_limit import login_limiter, reset_limiter
 from app.db.session import Base, get_db
 from app.main import app
-from app.models import pantry, password_reset, shopping_template, user, user_preferences  # noqa: F401
+from app.models import (favorite_menu, menu_history, pantry, password_reset,  # noqa: F401
+                        shopping_template, user, user_preferences)
 
 settings.secret_key = settings.secret_key or "clave-solo-para-tests"
 

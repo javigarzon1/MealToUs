@@ -4,7 +4,7 @@ import secrets
 from fastapi import Depends, FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 
-from app.api import auth, menus, pantry, preferences, shopping, templates
+from app.api import auth, menus, pantry, preferences, shopping, templates, favorites, history
 from app.api.deps import get_current_user
 from app.core.config import settings
 from app.core.static import mount_frontend
@@ -15,6 +15,8 @@ from app.models import user_preferences as _user_prefs_model  # noqa: F401  (reg
 from app.models import user as _user_model  # noqa: F401  (registra la tabla)
 from app.models import password_reset as _reset_model  # noqa: F401  (registra la tabla)
 from app.models import shopping_template as _template_model  # noqa: F401  (registra la tabla)
+from app.models import favorite_menu as _favorite_model  # noqa: F401  (registra la tabla)
+from app.models import menu_history as _history_model  # noqa: F401  (registra la tabla)
 
 logger = logging.getLogger("uvicorn.error")
 
@@ -33,7 +35,7 @@ app.add_middleware(CORSMiddleware, allow_origins=settings.cors_origins, allow_cr
 
 # Login/registro públicos; todo lo demás exige sesión.
 app.include_router(auth.router, prefix="/api")
-for r in (pantry.router, preferences.router, menus.router, shopping.router, templates.router):
+for r in (pantry.router, preferences.router, menus.router, shopping.router, templates.router, favorites.router, history.router):
     app.include_router(r, prefix="/api", dependencies=[Depends(get_current_user)])
 
 

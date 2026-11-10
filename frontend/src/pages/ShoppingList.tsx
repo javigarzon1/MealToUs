@@ -31,13 +31,12 @@ function mergeItems(current: ShoppingItem[], incoming: ShoppingItem[]): Shopping
 }
 
 export default function ShoppingList() {
-  const { state, apiContext, setShopping, setExtraItems } = usePlan();
+  const { state, apiContext, setShopping, setExtraItems, setChecked: saveChecked } = usePlan();
   const navigate = useNavigate();
   const shopAction = useAction();
   const linkAction = useAction();
   const tplAction = useAction();
 
-  const [checked, setChecked] = useState<Set<string>>(new Set());
   const [links, setLinks] = useState<SupermarketLinks | null>(null);
   const [copied, setCopied] = useState(false);
   const [templates, setTemplates] = useState<ShoppingTemplate[]>([]);
@@ -50,6 +49,7 @@ export default function ShoppingList() {
   const [flash, setFlash] = useState<string | null>(null);
 
   const { plan, shopping, extraItems } = state;
+  const checked = useMemo(() => new Set(state.checked), [state.checked]);
   const recipes = useMemo(() => shopping?.recipes ?? [], [shopping]);
   const menuItems = useMemo(() => shopping?.shopping_list ?? [], [shopping]);
   const allItems = useMemo(() => [...extraItems, ...menuItems], [extraItems, menuItems]);
@@ -76,19 +76,14 @@ export default function ShoppingList() {
     const res = await shopAction.run(() => api.shopping(apiContext, plan));
     if (res) {
       setShopping(res);
-      setChecked(new Set());
+      saveChecked([]);
       setLinks(null);
       setOpenRecipes(new Set());
     }
   }
 
   function toggle(key: string) {
-    setChecked((prev) => {
-      const next = new Set(prev);
-      if (next.has(key)) next.delete(key);
-      else next.add(key);
-      return next;
-    });
+    saveChecked(checked.has(key) ? state.checked.filter((k) => k !== key) : [...state.checked, key]);
   }
 
   // ----- lista propia -----
@@ -105,7 +100,7 @@ export default function ShoppingList() {
   function removeExtra(idx: number) {
     setExtraItems(extraItems.filter((_, i) => i !== idx));
     // Al quitar uno cambian los índices de los siguientes: se limpian las marcas de la lista propia
-    setChecked((prev) => new Set([...prev].filter((k) => !k.startsWith("x-"))));
+    saveChecked(state.checked.filter((k) => !k.startsWith("x-")));
   }
 
   // ----- plantillas -----

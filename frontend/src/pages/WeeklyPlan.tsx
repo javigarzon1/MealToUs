@@ -2,15 +2,20 @@ import { useNavigate } from "react-router-dom";
 import { api } from "../api/client";
 import { DIET_LABEL } from "../components/DishCard";
 import { ErrorBox, Loading, Missing } from "../components/Feedback";
+import FavoritesPanel from "../components/FavoritesPanel";
 import { useAction } from "../hooks/useAction";
+import { WIDE_QUERY, useMediaQuery } from "../hooks/useMediaQuery";
+import { useChat } from "../state/ChatState";
 import { usePlan } from "../state/PlanState";
 import { WEEKDAYS_ES, dayEs, todayEs } from "../utils/days";
 import { downloadPdf } from "../utils/pdf";
 import { menuBlocks } from "../utils/pdfDocs";
 
 export default function WeeklyPlan() {
-  const { state, apiContext, setPlan, setShopping, setStartDay } = usePlan();
+  const { state, apiContext, setPlan, setShopping, setStartDay, setChecked } = usePlan();
   const navigate = useNavigate();
+  const chat = useChat();
+  const wide = useMediaQuery(WIDE_QUERY);
   const planAction = useAction();
   const shopAction = useAction();
   const { lunch, dinner, plan } = state;
@@ -32,6 +37,7 @@ export default function WeeklyPlan() {
     const res = await shopAction.run(() => api.shopping(apiContext, plan));
     if (res) {
       setShopping(res);
+      setChecked([]);
       navigate("/compra");
     }
   }
@@ -49,7 +55,7 @@ export default function WeeklyPlan() {
         </p>
       </div>
 
-      {!ready && (
+      {!ready && !plan && (
         <Missing
           text="Necesitas elegir comida y cena antes de generar el menú."
           to={lunch ? "/cena" : "/comida"}
@@ -125,7 +131,7 @@ export default function WeeklyPlan() {
                   {isToday && (
                     <button
                       className="btn btn--small"
-                      onClick={() => navigate("/chat", { state: { ask: true } })}
+                      onClick={chat.askToday}
                     >
                       Cocinar hoy con el asistente
                     </button>
@@ -151,6 +157,8 @@ export default function WeeklyPlan() {
           </div>
         </>
       )}
+
+      {!wide && <FavoritesPanel />}
 
       <div className="actions actions--between">
         <button className="btn btn--quiet" onClick={() => navigate("/cena")}>Volver a cena</button>

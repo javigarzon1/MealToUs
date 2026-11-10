@@ -1,3 +1,4 @@
+import { useEffect, useRef } from "react";
 import { Navigate, NavLink, Route, Routes } from "react-router-dom";
 import Pantry from "./pages/Pantry";
 import Preferences from "./pages/Preferences";
@@ -5,20 +6,47 @@ import LunchOptions from "./pages/LunchOptions";
 import DinnerOptions from "./pages/DinnerOptions";
 import WeeklyPlan from "./pages/WeeklyPlan";
 import ShoppingList from "./pages/ShoppingList";
-import Chat from "./pages/Chat";
 import Login from "./pages/Login";
 import Register from "./pages/Register";
 import ForgotPassword from "./pages/ForgotPassword";
 import ResetPassword from "./pages/ResetPassword";
 import Brand from "./components/Brand";
+import ChatPanel from "./components/ChatPanel";
+import FavoritesPanel from "./components/FavoritesPanel";
+import TodayPanel from "./components/TodayPanel";
 import { Loading } from "./components/Feedback";
 import { useAuth } from "./state/AuthState";
+import { CHAT_QUERY, WIDE_QUERY, useMediaQuery } from "./hooks/useMediaQuery";
+import { ChatProvider, useChat } from "./state/ChatState";
 import { PlanProvider, usePlan } from "./state/PlanState";
 
 /** Parte privada: solo se ve con sesión iniciada. */
 function Shell() {
   const { state } = usePlan();
   const { user, logout } = useAuth();
+  const { open, setOpen } = useChat();
+  const wide = useMediaQuery(WIDE_QUERY);
+  const chatDocked = useMediaQuery(CHAT_QUERY);
+  const topbar = useRef<HTMLElement>(null);
+
+  // Los paneles laterales se pegan justo debajo de la barra superior, mida lo que mida
+  useEffect(() => {
+    const el = topbar.current;
+    if (!el) return;
+    const apply = () => document.documentElement.style.setProperty("--topbar-h", `${el.offsetHeight}px`);
+    apply();
+    const ro = new ResizeObserver(apply);
+    ro.observe(el);
+    return () => ro.disconnect();
+  }, []);
+
+  // Escape cierra el cajón del asistente
+  useEffect(() => {
+    if (!open) return;
+    const onKey = (e: KeyboardEvent) => e.key === "Escape" && setOpen(false);
+    window.addEventListener("keydown", onKey);
+    return () => window.removeEventListener("keydown", onKey);
+  }, [open, setOpen]);
 
   const steps = [
     { to: "/", label: "Despensa", done: state.pantry.length > 0 },
@@ -30,7 +58,7 @@ function Shell() {
 
   return (
     <>
-      <header className="topbar">
+      <header className="topbar" ref={topbar}>
         <div className="topbar__inner">
           <div className="topbar__row">
             <Brand />
@@ -58,29 +86,54 @@ function Shell() {
                 </li>
               ))}
             </ol>
-            <span className="journey__spacer" />
-            <NavLink to="/chat" className={({ isActive }) => `step step--chat${isActive ? " is-active" : ""}`}>
-              <span className="step__label">Asistente</span>
-            </NavLink>
           </nav>
         </div>
       </header>
-      <main className="page">
-        <Routes>
-          <Route path="/" element={<Pantry />} />
-          <Route path="/preferencias" element={<Preferences />} />
-          <Route path="/comida" element={<LunchOptions />} />
-          <Route path="/cena" element={<DinnerOptions />} />
-          <Route path="/semana" element={<WeeklyPlan />} />
-          <Route path="/compra" element={<ShoppingList />} />
-          <Route path="/chat" element={<Chat />} />
-          <Route path="/login" element={<Navigate to="/" replace />} />
-          <Route path="/registro" element={<Navigate to="/" replace />} />
-          <Route path="/olvide-contrasena" element={<Navigate to="/" replace />} />
-          <Route path="/restablecer" element={<ResetPassword />} />
-          <Route path="*" element={<Pantry />} />
-        </Routes>
-      </main>
+      <div className={`workspace${wide ? " workspace--wide" : ""}${chatDocked ? " workspace--chat" : ""}`}>
+        {wide && (
+          <aside className="workspace__left" aria-label="Hoy y mis menús">
+            <TodayPanel />
+            <FavoritesPanel />
+          </aside>
+        )}
+        <main className="page workspace__main">
+          <Routes>
+            <Route path="/" element={<Pantry />} />
+            <Route path="/preferencias" element={<Preferences />} />
+            <Route path="/comida" element={<LunchOptions />} />
+            <Route path="/cena" element={<DinnerOptions />} />
+            <Route path="/semana" element={<WeeklyPlan />} />
+            <Route path="/compra" element={<ShoppingList />} />
+            <Route path="/chat" element={<Navigate to="/" replace />} />
+            <Route path="/login" element={<Navigate to="/" replace />} />
+            <Route path="/registro" element={<Navigate to="/" replace />} />
+            <Route path="/olvide-contrasena" element={<Navigate to="/" replace />} />
+            <Route path="/restablecer" element={<ResetPassword />} />
+            <Route path="*" element={<Pantry />} />
+          </Routes>
+        </main>
+        {chatDocked && (
+          <aside className="workspace__right">
+            <ChatPanel />
+          </aside>
+        )}
+      </div>
+
+      {!chatDocked && (
+        <>
+          <button className="chat-fab" onClick={() => setOpen(true)} aria-label="Abrir el asistente">
+            <span aria-hidden="true">💬</span> Asistente
+          </button>
+          {open && (
+            <div className="drawer" role="dialog" aria-modal="true" aria-label="Asistente de cocina">
+              <button className="drawer__backdrop" onClick={() => setOpen(false)} aria-label="Cerrar el asistente" tabIndex={-1} />
+              <div className="drawer__sheet">
+                <ChatPanel onClose={() => setOpen(false)} />
+              </div>
+            </div>
+          )}
+        </>
+      )}
     </>
   );
 }
@@ -110,7 +163,9 @@ export default function App() {
   // key={user.id}: al cambiar de usuario se descarta todo el estado del anterior
   return (
     <PlanProvider key={user.id} userId={user.id}>
-      <Shell />
+      <ChatProvider>
+        <Shell />
+      </ChatProvider>
     </PlanProvider>
   );
 }

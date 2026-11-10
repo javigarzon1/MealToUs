@@ -29,6 +29,8 @@ export interface SupermarketLinks {
 }
 export interface AuthUser { id: number; email: string; full_name?: string | null }
 
+export interface FavoriteMenu { id: number; name: string; plan: WeeklyPlan }
+export interface HistoryEntry { id: number; created_at: string; plan: WeeklyPlan }
 export interface ShoppingTemplate { id: number; name: string; items: ShoppingItem[] }
 /** Lo que toca cocinar hoy, para el asistente */
 export interface TodayMenu { day: string; lunch: Dish | null; dinner: Dish | null; recipes: Recipe[] }
