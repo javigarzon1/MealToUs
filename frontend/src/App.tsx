@@ -60,18 +60,8 @@ function Shell() {
     <>
       <header className="topbar" ref={topbar}>
         <div className="topbar__inner">
-          <div className="topbar__row">
-            <Brand />
-            <div className="userbar">
-              <span className="userbar__who" title={user?.email}>{user?.email}</span>
-              <button className="btn btn--quiet btn--small" onClick={() => void logout()}>Salir</button>
-            </div>
-          </div>
+          <Brand />
           <nav className="journey" aria-label="Pasos">
-            <NavLink to="/compra" className={({ isActive }) => `step step--shop${isActive ? " is-active" : ""}`}>
-              <span className="step__emoji" aria-hidden="true">🛒</span>
-              <span className="step__label">Compra</span>
-            </NavLink>
             <ol className="journey__list">
               {steps.map((s, i) => (
                 <li key={s.to}>
@@ -87,6 +77,13 @@ function Shell() {
               ))}
             </ol>
           </nav>
+          <NavLink to="/compra" className={({ isActive }) => `buy-btn${isActive ? " is-active" : ""}`}>
+            <span aria-hidden="true">🛒</span> Comprar
+          </NavLink>
+          <div className="userbar">
+            <span className="userbar__who" title={user?.email}>{user?.email}</span>
+            <button className="btn btn--quiet btn--small" onClick={() => void logout()}>Salir</button>
+          </div>
         </div>
       </header>
       <div className={`workspace${wide ? " workspace--wide" : ""}${chatDocked ? " workspace--chat" : ""}`}>

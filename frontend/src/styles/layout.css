@@ -5,12 +5,8 @@
   border-bottom: 1px solid var(--line);
 }
 .topbar__inner {
-  max-width: 1760px; margin: 0 auto;
-  padding: 0.75rem 1.25rem 0;
-}
-.topbar__row {
-  display: flex; align-items: center; justify-content: space-between; gap: 1rem;
-  padding-bottom: 0.65rem;
+  max-width: 1760px; margin: 0 auto; padding: 0.6rem 1.25rem;
+  display: flex; align-items: center; gap: 1rem;
 }
 .brand {
   display: inline-flex; align-items: center; gap: 0.6rem;
@@ -26,7 +22,7 @@
 .userbar__who { color: var(--muted); font-size: var(--t-sm); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; max-width: 26ch; }
 
 /* Recorrido: el flujo es una secuencia real (despensa → compra) */
-.journey { display: flex; align-items: center; gap: 0.25rem; padding-bottom: 0.75rem; overflow-x: auto; scrollbar-width: none; }
+.journey { flex: 1; min-width: 0; display: flex; align-items: center; gap: 0.25rem; overflow-x: auto; scrollbar-width: none; }
 .journey::-webkit-scrollbar { display: none; }
 .journey__list { display: flex; align-items: center; gap: 0.25rem; list-style: none; padding: 0; margin: 0; }
 .journey__list li { display: flex; align-items: center; }
@@ -66,7 +62,7 @@
 .footer-note { color: var(--muted); font-size: var(--t-sm); max-width: 70ch; }
 
 @media (max-width: 640px) {
-  .topbar__inner { padding: 0.6rem 1rem 0; }
+  .topbar__inner { padding: 0.5rem 1rem; gap: 0.6rem; }
   .page { padding: 1.5rem 1rem 3rem; }
   .userbar__who { display: none; }
   .step__label { display: none; }
@@ -78,12 +74,17 @@
 }
 
 /* Compra: acceso al principio del menú, antes del recorrido numerado */
-.step--shop { padding-left: 0.8rem; border: 1.5px solid var(--line-strong); margin-right: 0.5rem; }
-.step--shop.is-active { border-color: #ff6b3d; }
-.step__emoji { font-size: 1rem; line-height: 1; }
-@media (max-width: 640px) {
-  .step--shop .step__label { display: inline; }
+/* Comprar: acción principal de la barra, a la derecha y por encima del resto */
+.buy-btn {
+  flex: none; display: inline-flex; align-items: center; gap: 0.5rem; text-decoration: none; white-space: nowrap;
+  padding: 0.6rem 1.35rem; border-radius: var(--r-pill); background: var(--ink); color: #fff;
+  font-weight: 900; font-size: var(--t-base, 1rem);
+  box-shadow: 0 5px 0 #ff6b3d;
+  transition: transform 0.12s var(--ease), box-shadow 0.12s var(--ease);
 }
+.buy-btn:hover { transform: translateY(-1px); }
+.buy-btn:active, .buy-btn.is-active { transform: translateY(3px); box-shadow: 0 2px 0 #ff6b3d; }
+.buy-btn:focus-visible { outline: 3px solid var(--lemon); outline-offset: 3px; }
 
 /* ───────── Espacio de trabajo: favoritos | página | asistente ───────── */
 .workspace {
@@ -115,3 +116,17 @@
   background: var(--surface); border-radius: var(--r-lg) var(--r-lg) 0 0;
 }
 .drawer__sheet .chatpanel { border: 0; border-radius: 0; }
+
+/* Por debajo de 1100 px los pasos pasan a una segunda línea para que todo quepa */
+@media (max-width: 1100px) {
+  .topbar__inner { flex-wrap: wrap; }
+  .buy-btn { margin-left: auto; }
+  .journey { order: 5; flex-basis: 100%; padding-bottom: 0.15rem; }
+  .userbar__who { display: none; }
+}
+
+@media (max-width: 640px) {
+  .brand { font-size: 1.25rem; gap: 0.4rem; }
+  .brand img { width: 40px; height: 40px; }
+  .buy-btn { padding: 0.5rem 0.95rem; font-size: 0.95rem; }
+}
