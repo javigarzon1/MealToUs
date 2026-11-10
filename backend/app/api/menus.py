@@ -51,7 +51,7 @@ def dinner_options(req: DinnerRequest, agent: MealAgent = Depends(get_agent)):
 
 @router.post("/weekly-plan", response_model=WeeklyPlan)
 def weekly_plan(req: WeeklyPlanRequest, agent: MealAgent = Depends(get_agent)):
-    return _guard(agent.build_weekly_plan, req, req.chosen_lunch, req.chosen_dinner)
+    return _guard(agent.build_weekly_plan, req, req.chosen_lunch, req.chosen_dinner, req.start_day)
 
 
 @router.post("/shopping", response_model=ShoppingResult)
@@ -62,4 +62,4 @@ def shopping(req: ShoppingRequest, agent: MealAgent = Depends(get_agent)):
 @router.post("/chat")
 def chat(req: ChatRequest, agent: MealAgent = Depends(get_agent)):
     msgs = [m.model_dump() for m in req.messages]
-    return {"reply": _guard(agent.chat, msgs, req.context)}
+    return {"reply": _guard(agent.chat, msgs, req.context, req.today)}

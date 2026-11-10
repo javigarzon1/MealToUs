@@ -15,6 +15,8 @@ export default function Preferences() {
   const { loading, error, run } = useAction();
   // Se edita una copia y se guarda en el servidor con el botón
   const prefs = draft ?? state.preferences;
+  const kcal = prefs.max_kcal_per_day;
+  const kcalInvalid = kcal !== null && (kcal < 1000 || kcal > 6000);
 
   function change(next: UserPreferences) {
     setDraft(next);
@@ -23,6 +25,7 @@ export default function Preferences() {
 
   async function save(): Promise<boolean> {
     if (!draft) return true;
+    if (kcalInvalid) return false;
     const res = await run(() => api.savePreferences(draft));
     if (!res) return false;
     setPreferences(res);
@@ -57,6 +60,26 @@ export default function Preferences() {
           />
         </label>
 
+        <label className="field" style={{ maxWidth: 260 }}>
+          <span>Tope de calorías al día <span className="field__hint">(opcional)</span></span>
+          <input
+            className="input"
+            type="number"
+            inputMode="numeric"
+            min={1000}
+            max={6000}
+            step={50}
+            placeholder="p. ej. 1800"
+            value={kcal ?? ""}
+            aria-invalid={kcalInvalid}
+            onChange={(e) => change({ ...prefs, max_kcal_per_day: e.target.value === "" ? null : Number(e.target.value) })}
+          />
+          <span className="field__hint">
+            Comida + cena nunca lo superan y la cena es siempre más ligera que la comida. Déjalo vacío si no quieres límite.
+          </span>
+          {kcalInvalid && <span className="field__error" role="alert">Escribe un valor entre 1000 y 6000 kcal.</span>}
+        </label>
+
         <TagInput
           label="Alergias"
           hint="(Enter o coma para añadir)"
@@ -89,12 +112,12 @@ export default function Preferences() {
       <div className="actions actions--between">
         <button className="btn btn--quiet" onClick={() => navigate("/")}>Volver a despensa</button>
         <div className="actions">
-          <button className="btn" disabled={loading || !draft} onClick={() => void save()}>
+          <button className="btn" disabled={loading || !draft || kcalInvalid} onClick={() => void save()}>
             Guardar
           </button>
           <button
             className="btn btn--primary"
-            disabled={loading}
+            disabled={loading || kcalInvalid}
             onClick={async () => {
               // Si cambiaste algo, la comida se vuelve a generar aunque ya hubiera opciones
               const changed = !!draft;

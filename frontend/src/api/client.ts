@@ -1,6 +1,6 @@
 import type {
   AuthUser, ChatMessage, Dish, DishOptions, PantryItem, PantryItemOut, PlanContext, ShoppingItem,
-  ShoppingResult, SupermarketLinks, UserPreferences, WeeklyPlan,
+  ShoppingResult, ShoppingTemplate, SupermarketLinks, TodayMenu, UserPreferences, WeeklyPlan,
 } from "../types";
 
 // Por defecto usa el proxy de Vite (/api -> backend en :8000), así la cookie de sesión es del mismo origen
@@ -74,12 +74,17 @@ export const api = {
   lunchOptions: (ctx: PlanContext) => post<DishOptions>("/menus/lunch-options", ctx),
   dinnerOptions: (ctx: PlanContext, chosen_lunch: Dish) =>
     post<DishOptions>("/menus/dinner-options", { ...ctx, chosen_lunch }),
-  weeklyPlan: (ctx: PlanContext, chosen_lunch: Dish, chosen_dinner: Dish) =>
-    post<WeeklyPlan>("/menus/weekly-plan", { ...ctx, chosen_lunch, chosen_dinner }),
+  weeklyPlan: (ctx: PlanContext, chosen_lunch: Dish, chosen_dinner: Dish, start_day?: string) =>
+    post<WeeklyPlan>("/menus/weekly-plan", { ...ctx, chosen_lunch, chosen_dinner, start_day }),
   shopping: (ctx: PlanContext, plan: WeeklyPlan) =>
     post<ShoppingResult>("/menus/shopping", { ...ctx, plan }),
-  chat: (messages: ChatMessage[], context?: PlanContext) =>
-    post<{ reply: string }>("/menus/chat", { messages, context }),
+  chat: (messages: ChatMessage[], context?: PlanContext, today?: TodayMenu) =>
+    post<{ reply: string }>("/menus/chat", { messages, context, today }),
+  // --- Plantillas de la compra ---
+  listTemplates: () => request<ShoppingTemplate[]>("GET", "/templates"),
+  saveTemplate: (name: string, items: ShoppingItem[]) =>
+    post<ShoppingTemplate>("/templates", { name, items }),
+  deleteTemplate: (id: number) => request<void>("DELETE", `/templates/${id}`),
   supermarketLinks: (supermarket: string, items: ShoppingItem[]) =>
     post<SupermarketLinks>("/shopping/supermarket-links", { supermarket, items }),
 };

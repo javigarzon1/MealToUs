@@ -81,7 +81,7 @@ def test_weekly_plan_with_diet():
                 DayPlan(
                     day=day_name,
                     lunch=Dish(name="Ensalada", diet_type="healthy", kcal_per_serving=500, ingredients=[]),
-                    dinner=Dish(name="Sopa", diet_type="healthy", kcal_per_serving=500, ingredients=[])
+                    dinner=Dish(name="Sopa", diet_type="healthy", kcal_per_serving=400, ingredients=[])
                 )
             )
         weekly = WeeklyPlan(diet_type="healthy", target_kcal_per_day=2000, days=days)
@@ -90,7 +90,7 @@ def test_weekly_plan_with_diet():
     llm = FakeLLM(weekly_replies)
     ctx = PlanContext(preferences=UserPreferences(people=1))
     plan_dish1 = Dish(name="Ensalada", diet_type="healthy", kcal_per_serving=500, ingredients=[])
-    plan_dish2 = Dish(name="Sopa", diet_type="healthy", kcal_per_serving=500, ingredients=[])
+    plan_dish2 = Dish(name="Sopa", diet_type="healthy", kcal_per_serving=400, ingredients=[])
     result = MealAgent(llm).build_weekly_plan(ctx, plan_dish1, plan_dish2)
     assert result.diet_type.value == "healthy"
     assert len(result.days) == 7

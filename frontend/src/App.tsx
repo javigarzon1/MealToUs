@@ -26,7 +26,6 @@ function Shell() {
     { to: "/comida", label: "Comida", done: !!state.lunch },
     { to: "/cena", label: "Cena", done: !!state.dinner },
     { to: "/semana", label: "Semana", done: !!state.plan },
-    { to: "/compra", label: "Compra", done: !!state.shopping },
   ];
 
   return (
@@ -41,6 +40,10 @@ function Shell() {
             </div>
           </div>
           <nav className="journey" aria-label="Pasos">
+            <NavLink to="/compra" className={({ isActive }) => `step step--shop${isActive ? " is-active" : ""}`}>
+              <span className="step__emoji" aria-hidden="true">🛒</span>
+              <span className="step__label">Compra</span>
+            </NavLink>
             <ol className="journey__list">
               {steps.map((s, i) => (
                 <li key={s.to}>

@@ -9,7 +9,7 @@ from sqlalchemy.engine import Engine
 # tabla -> [(columna, tipo SQL)]   (valores fijos del código, no entrada de usuario)
 _NEW_COLUMNS = {
     "pantry_items": [("user_id", "INTEGER")],
-    "user_preferences": [("user_id", "INTEGER")],
+    "user_preferences": [("user_id", "INTEGER"), ("max_kcal_per_day", "INTEGER")],
 }
 
 

@@ -11,6 +11,8 @@ export interface PantryItem { name: string; quantity?: string | null }
 export interface PantryItemOut extends PantryItem { id: number }
 export interface UserPreferences {
   people: number; allergies: string[]; intolerances: string[]; dislikes: string[];
+  /** Tope de kcal al día (comida + cena); null = sin límite */
+  max_kcal_per_day: number | null;
 }
 export interface PlanContext { pantry: PantryItem[]; preferences: UserPreferences }
 export interface ShoppingItem { name: string; quantity: number; unit: string; category: string }
@@ -26,3 +28,7 @@ export interface SupermarketLinks {
   links: { item: string; url: string }[];
 }
 export interface AuthUser { id: number; email: string; full_name?: string | null }
+
+export interface ShoppingTemplate { id: number; name: string; items: ShoppingItem[] }
+/** Lo que toca cocinar hoy, para el asistente */
+export interface TodayMenu { day: string; lunch: Dish | null; dinner: Dish | null; recipes: Recipe[] }
