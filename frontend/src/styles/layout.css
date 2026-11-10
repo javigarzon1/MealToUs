@@ -5,7 +5,7 @@
   border-bottom: 1px solid var(--line);
 }
 .topbar__inner {
-  max-width: 1120px; margin: 0 auto;
+  max-width: 1760px; margin: 0 auto;
   padding: 0.75rem 1.25rem 0;
 }
 .topbar__row {
@@ -84,3 +84,34 @@
 @media (max-width: 640px) {
   .step--shop .step__label { display: inline; }
 }
+
+/* ───────── Espacio de trabajo: favoritos | página | asistente ───────── */
+.workspace {
+  max-width: 1760px; margin: 0 auto; padding: 1.5rem 1.25rem 5.5rem;
+  display: grid; grid-template-columns: minmax(0, 1fr); gap: 1.5rem; align-items: start;
+}
+.workspace--chat { grid-template-columns: minmax(0, 1fr) 360px; padding-bottom: 3rem; }
+.workspace--wide.workspace--chat { grid-template-columns: 270px minmax(0, 1fr) 380px; }
+.workspace__main.page { max-width: none; margin: 0; padding: 0; min-width: 0; }
+.workspace__left, .workspace__right {
+  position: sticky; top: calc(var(--topbar-h, 8rem) + 1rem);
+  max-height: calc(100vh - var(--topbar-h, 8rem) - 2rem);
+}
+.workspace__left { overflow-y: auto; display: grid; gap: 1rem; align-content: start; }
+.workspace__right { height: calc(100vh - var(--topbar-h, 8rem) - 2rem); }
+
+/* Asistente en pantallas estrechas: botón flotante y cajón */
+.chat-fab {
+  position: fixed; right: 1rem; bottom: 1rem; z-index: 30;
+  display: inline-flex; align-items: center; gap: 0.5rem; padding: 0.8rem 1.2rem; border: 0; border-radius: var(--r-pill);
+  background: #ff6b3d; color: #fff; font: inherit; font-weight: 800; cursor: pointer;
+  box-shadow: 0 8px 24px color-mix(in srgb, var(--ink) 30%, transparent);
+}
+.chat-fab:focus-visible { outline: 3px solid var(--lemon); outline-offset: 2px; box-shadow: 0 0 0 6px var(--ink); }
+.drawer { position: fixed; inset: 0; z-index: 40; display: flex; align-items: flex-end; justify-content: center; }
+.drawer__backdrop { all: unset; position: absolute; inset: 0; background: color-mix(in srgb, var(--ink) 45%, transparent); }
+.drawer__sheet {
+  position: relative; width: min(100%, 560px); height: min(85vh, 720px); overflow: hidden;
+  background: var(--surface); border-radius: var(--r-lg) var(--r-lg) 0 0;
+}
+.drawer__sheet .chatpanel { border: 0; border-radius: 0; }

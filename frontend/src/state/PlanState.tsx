@@ -19,6 +19,8 @@ interface State {
   startDay: string;
   /** Lista de la compra propia: lo que añade el usuario y lo que carga de una plantilla */
   extraItems: ShoppingItem[];
+  /** Productos ya comprados (claves "m-N" del menú y "x-N" de la lista propia) */
+  checked: string[];
 }
 
 const INITIAL: State = {
@@ -32,6 +34,7 @@ const INITIAL: State = {
   shopping: null,
   startDay: todayEs(),
   extraItems: [],
+  checked: [],
 };
 
 // Cada usuario guarda su progreso en su propia clave del navegador
@@ -66,6 +69,7 @@ interface PlanStateValue {
   /** Cambia el día de inicio y reetiqueta el menú ya generado sin volver a llamar a la IA */
   setStartDay: (day: string) => void;
   setExtraItems: (items: ShoppingItem[]) => void;
+  setChecked: (keys: string[]) => void;
   reset: () => void;
 }
 
@@ -124,6 +128,7 @@ export function PlanProvider({ userId, children }: { userId: number; children: R
           plan: s.plan ? { ...s.plan, days: relabelDays(s.plan.days, startDay) } : s.plan,
         })),
       setExtraItems: (extraItems) => patch({ extraItems }),
+      setChecked: (checked) => patch({ checked }),
       reset: () => setState(INITIAL),
     };
   }, [state]);

@@ -6,7 +6,7 @@ export const DIET_LABEL: Record<DietType, string> = {
   sport: "Deportista",
 };
 
-const DIET_EMOJI: Record<DietType, string> = { healthy: "🥗", normal: "🍳", sport: "🍗" };
+export const DIET_EMOJI: Record<DietType, string> = { healthy: "🥗", normal: "🍳", sport: "🍗" };
 
 export function fmt(n: number): string {
   return String(Math.round(n * 10) / 10);

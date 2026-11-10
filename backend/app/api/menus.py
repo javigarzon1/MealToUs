@@ -2,9 +2,13 @@ import logging
 import re
 
 from fastapi import APIRouter, Depends, HTTPException # pyright: ignore[reportMissingImports]
+from sqlalchemy.orm import Session
 
 from app.ai.agent import AgentError, MealAgent
-from app.api.deps import get_agent
+from app.api.deps import get_agent, get_current_user
+from app.api.history import record_menu
+from app.db.session import get_db
+from app.models.user import UserModel
 from app.schemas.menu import DishOptions, WeeklyPlan
 from app.schemas.requests import (ChatRequest, DinnerRequest, PlanContext,
                                   ShoppingRequest, WeeklyPlanRequest)
@@ -50,8 +54,11 @@ def dinner_options(req: DinnerRequest, agent: MealAgent = Depends(get_agent)):
 
 
 @router.post("/weekly-plan", response_model=WeeklyPlan)
-def weekly_plan(req: WeeklyPlanRequest, agent: MealAgent = Depends(get_agent)):
-    return _guard(agent.build_weekly_plan, req, req.chosen_lunch, req.chosen_dinner, req.start_day)
+def weekly_plan(req: WeeklyPlanRequest, agent: MealAgent = Depends(get_agent),
+                db: Session = Depends(get_db), user: UserModel = Depends(get_current_user)):
+    plan = _guard(agent.build_weekly_plan, req, req.chosen_lunch, req.chosen_dinner, req.start_day)
+    record_menu(db, user.id, plan)  # queda en el historial del usuario
+    return plan
 
 
 @router.post("/shopping", response_model=ShoppingResult)

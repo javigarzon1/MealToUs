@@ -1,5 +1,5 @@
 import type {
-  AuthUser, ChatMessage, Dish, DishOptions, PantryItem, PantryItemOut, PlanContext, ShoppingItem,
+  AuthUser, ChatMessage, Dish, DishOptions, FavoriteMenu, HistoryEntry, PantryItem, PantryItemOut, PlanContext, ShoppingItem,
   ShoppingResult, ShoppingTemplate, SupermarketLinks, TodayMenu, UserPreferences, WeeklyPlan,
 } from "../types";
 
@@ -80,6 +80,14 @@ export const api = {
     post<ShoppingResult>("/menus/shopping", { ...ctx, plan }),
   chat: (messages: ChatMessage[], context?: PlanContext, today?: TodayMenu) =>
     post<{ reply: string }>("/menus/chat", { messages, context, today }),
+  // --- Menús favoritos ---
+  listFavorites: () => request<FavoriteMenu[]>("GET", "/favorites"),
+  saveFavorite: (name: string, plan: WeeklyPlan) => post<FavoriteMenu>("/favorites", { name, plan }),
+  deleteFavorite: (id: number) => request<void>("DELETE", `/favorites/${id}`),
+  // --- Historial: cada menú generado se anota solo en el servidor ---
+  listHistory: () => request<HistoryEntry[]>("GET", "/history"),
+  deleteHistory: (id: number) => request<void>("DELETE", `/history/${id}`),
+
   // --- Plantillas de la compra ---
   listTemplates: () => request<ShoppingTemplate[]>("GET", "/templates"),
   saveTemplate: (name: string, items: ShoppingItem[]) =>
