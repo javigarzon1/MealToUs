@@ -76,3 +76,11 @@
   .step--chat .step__label { display: inline; }
   .actions--between > .btn { flex: 1 1 auto; justify-content: center; }
 }
+
+/* Compra: acceso al principio del menú, antes del recorrido numerado */
+.step--shop { padding-left: 0.8rem; border: 1.5px solid var(--line-strong); margin-right: 0.5rem; }
+.step--shop.is-active { border-color: #ff6b3d; }
+.step__emoji { font-size: 1rem; line-height: 1; }
+@media (max-width: 640px) {
+  .step--shop .step__label { display: inline; }
+}

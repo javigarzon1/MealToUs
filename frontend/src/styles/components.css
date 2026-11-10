@@ -234,3 +234,59 @@ input[type="checkbox"].check:checked::after {
 .day__name, .recipe summary { font-weight: 900; }
 .steps li::before { font-family: var(--font-ui); font-weight: 900; color: #ff6b3d; }
 .dish__emoji { font-size: 2.6rem; line-height: 1; margin-bottom: 0.4rem; }
+
+/* ───────── Día de inicio del menú ───────── */
+.daypicker { border: 0; padding: 0; margin: 0; display: grid; gap: 0.6rem; }
+.daypicker legend { font-weight: 800; padding: 0; margin-bottom: 0.5rem; }
+.daypicker__row { display: flex; flex-wrap: wrap; gap: 0.5rem; }
+.daypicker__opt {
+  position: relative; display: inline-flex; align-items: baseline; gap: 0.35rem; cursor: pointer;
+  padding: 0.45rem 1rem; border-radius: var(--r-pill); background: var(--surface);
+  border: 2px solid var(--line-strong); font-weight: 700; text-transform: capitalize;
+  transition: background 0.15s var(--ease), border-color 0.15s var(--ease);
+}
+.daypicker__opt:hover { border-color: var(--ink); }
+.daypicker__opt input { position: absolute; opacity: 0; inset: 0; cursor: pointer; }
+.daypicker__opt:has(input:focus-visible) { outline: 3px solid var(--lemon); outline-offset: 2px; box-shadow: 0 0 0 5px var(--ink); }
+.daypicker__opt.is-on { background: var(--ink); border-color: var(--ink); color: var(--on-ink); }
+.daypicker__opt small { font-weight: 700; font-size: 0.72rem; text-transform: none; opacity: 0.8; }
+.day--today { box-shadow: 0 0 0 3px var(--lemon); }
+.day__today {
+  margin-left: 0.5rem; font-family: var(--font-ui); font-size: 0.72rem; font-weight: 800; text-transform: none;
+  background: var(--lemon); color: var(--ink); padding: 0.1rem 0.55rem; border-radius: var(--r-pill); vertical-align: middle;
+}
+
+/* ───────── Compra: lista propia, plantillas y enlaces con recetas ───────── */
+.add-row { display: flex; flex-wrap: wrap; align-items: flex-end; gap: 0.75rem; }
+.add-row__name { flex: 1 1 220px; }
+.add-row__qty { flex: 0 0 6.5rem; }
+.add-row__unit { flex: 0 0 7.5rem; }
+select.input { appearance: auto; }
+.templates { display: grid; gap: 0.75rem; padding-top: 1rem; border-top: 1px solid var(--line); }
+.templates h4 { margin: 0; font-family: var(--font-ui); font-weight: 800; font-size: var(--t-sm); color: var(--ink-2); }
+.template-row { display: flex; flex-wrap: wrap; align-items: center; gap: 0.5rem; padding: 0.35rem 0; border-bottom: 1px solid var(--line); }
+.template-row__name { flex: 1 1 12rem; font-weight: 700; }
+
+.check-row { flex-wrap: wrap; }
+.check-row.is-flash { background: var(--lemon); border-radius: var(--r-sm); transition: background 0.4s var(--ease); }
+.icon-btn {
+  all: unset; cursor: pointer; width: 1.7rem; height: 1.7rem; display: grid; place-items: center;
+  border-radius: 50%; color: var(--muted); font-size: 1.2rem; line-height: 1;
+}
+.icon-btn:hover { background: var(--line); color: var(--err); }
+.icon-btn:focus-visible { outline: 3px solid var(--lemon); box-shadow: 0 0 0 5px var(--ink); }
+.item-uses { flex-basis: 100%; display: flex; flex-wrap: wrap; align-items: center; gap: 0.35rem; padding-left: 2rem; }
+.link-chip {
+  font: inherit; font-size: 0.78rem; font-weight: 700; cursor: pointer; padding: 0.1rem 0.65rem; border-radius: var(--r-pill);
+  border: 1.5px solid var(--normal); background: var(--normal-tint); color: var(--normal-ink);
+}
+.link-chip:hover { background: var(--normal); color: #fff; }
+.link-chip:focus-visible { outline: 3px solid var(--lemon); box-shadow: 0 0 0 5px var(--ink); }
+.tag {
+  font-size: 0.78rem; font-weight: 700; padding: 0.1rem 0.65rem; border-radius: var(--r-pill);
+  background: var(--healthy-tint); color: var(--healthy-ink); white-space: nowrap;
+}
+.leaders li { flex-wrap: wrap; }
+.field__error { color: var(--err); font-weight: 700; font-size: var(--t-sm); }
+.input[aria-invalid="true"] { border-color: var(--err); }
+.suggest--today { border-style: solid; border-color: var(--lemon); background: color-mix(in srgb, var(--lemon) 35%, var(--surface)); font-weight: 800; }

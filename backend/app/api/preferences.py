@@ -20,6 +20,7 @@ def _to_schema(row: UserPreferencesModel | None) -> UserPreferences:
         allergies=json.loads(row.allergies or "[]"),
         intolerances=json.loads(row.intolerances or "[]"),
         dislikes=json.loads(row.dislikes or "[]"),
+        max_kcal_per_day=row.max_kcal_per_day,
     )
 
 
@@ -40,6 +41,7 @@ def save_preferences(prefs: UserPreferences, db: Session = Depends(get_db),
     row.allergies = json.dumps(prefs.allergies, ensure_ascii=False)
     row.intolerances = json.dumps(prefs.intolerances, ensure_ascii=False)
     row.dislikes = json.dumps(prefs.dislikes, ensure_ascii=False)
+    row.max_kcal_per_day = prefs.max_kcal_per_day
     db.add(row)
     db.commit()
     return _to_schema(row)

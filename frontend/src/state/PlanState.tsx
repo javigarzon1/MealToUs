@@ -2,8 +2,9 @@ import { api } from "../api/client";
 import { createContext, useContext, useEffect, useMemo, useState } from "react";
 import type { ReactNode } from "react";
 import type {
-  Dish, DishOptions, PantryItemOut, PlanContext, ShoppingResult, UserPreferences, WeeklyPlan,
+  Dish, DishOptions, PantryItemOut, PlanContext, ShoppingItem, ShoppingResult, UserPreferences, WeeklyPlan,
 } from "../types";
+import { relabelDays, todayEs } from "../utils/days";
 
 interface State {
   pantry: PantryItemOut[];
@@ -14,17 +15,23 @@ interface State {
   dinner: Dish | null;
   plan: WeeklyPlan | null;
   shopping: ShoppingResult | null;
+  /** Día de la semana en el que empieza el menú (por defecto, hoy) */
+  startDay: string;
+  /** Lista de la compra propia: lo que añade el usuario y lo que carga de una plantilla */
+  extraItems: ShoppingItem[];
 }
 
 const INITIAL: State = {
   pantry: [],
-  preferences: { people: 1, allergies: [], intolerances: [], dislikes: [] },
+  preferences: { people: 1, allergies: [], intolerances: [], dislikes: [], max_kcal_per_day: null },
   lunchOptions: null,
   lunch: null,
   dinnerOptions: null,
   dinner: null,
   plan: null,
   shopping: null,
+  startDay: todayEs(),
+  extraItems: [],
 };
 
 // Cada usuario guarda su progreso en su propia clave del navegador
@@ -33,7 +40,11 @@ const storageKey = (userId: number) => `mealtous-state-v1-user-${userId}`;
 function load(key: string): State {
   try {
     const raw = localStorage.getItem(key);
-    if (raw) return { ...INITIAL, ...JSON.parse(raw) };
+    if (raw) {
+      const saved = JSON.parse(raw) as Partial<State>;
+      // Sin menú generado, el día de inicio vuelve a ser hoy (no el de la última vez)
+      return { ...INITIAL, ...saved, ...(saved.plan ? {} : { startDay: todayEs() }) };
+    }
   } catch {
     /* sin almacenamiento disponible: se parte de cero */
   }
@@ -52,6 +63,9 @@ interface PlanStateValue {
   chooseDinner: (d: Dish) => void;
   setPlan: (p: WeeklyPlan) => void;
   setShopping: (s: ShoppingResult) => void;
+  /** Cambia el día de inicio y reetiqueta el menú ya generado sin volver a llamar a la IA */
+  setStartDay: (day: string) => void;
+  setExtraItems: (items: ShoppingItem[]) => void;
   reset: () => void;
 }
 
@@ -103,6 +117,13 @@ export function PlanProvider({ userId, children }: { userId: number; children: R
       chooseDinner: (dinner) => patch({ dinner, plan: null, shopping: null }),
       setPlan: (plan) => patch({ plan, shopping: null }),
       setShopping: (shopping) => patch({ shopping }),
+      setStartDay: (startDay) =>
+        setState((s) => ({
+          ...s,
+          startDay,
+          plan: s.plan ? { ...s.plan, days: relabelDays(s.plan.days, startDay) } : s.plan,
+        })),
+      setExtraItems: (extraItems) => patch({ extraItems }),
       reset: () => setState(INITIAL),
     };
   }, [state]);

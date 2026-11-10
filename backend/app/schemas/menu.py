@@ -37,6 +37,15 @@ _DAYS_ES = {
 }
 
 
+WEEKDAYS_ES = ["lunes", "martes", "miércoles", "jueves", "viernes", "sábado", "domingo"]
+
+
+def normalize_day(value: str) -> str:
+    """Nombre de día en castellano (acepta inglés, abreviaturas y sin tildes)."""
+    key = value.strip().lower().rstrip(".")
+    return _DAYS_ES.get(key, key)
+
+
 class DayPlan(BaseModel):
     day: str
     lunch: Dish
@@ -46,8 +55,7 @@ class DayPlan(BaseModel):
     @classmethod
     def day_in_spanish(cls, v: str) -> str:
         """Si el modelo devuelve el día en inglés, se pasa a castellano."""
-        key = v.strip().lower().rstrip(".")
-        return _DAYS_ES.get(key, key)
+        return normalize_day(v)
 
 
 class WeeklyPlan(BaseModel):

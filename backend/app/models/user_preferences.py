@@ -16,3 +16,4 @@ class UserPreferencesModel(Base):
     allergies: Mapped[str] = mapped_column(default="[]")  # JSON string
     intolerances: Mapped[str] = mapped_column(default="[]")  # JSON string
     dislikes: Mapped[str] = mapped_column(default="[]")  # JSON string
+    max_kcal_per_day: Mapped[Optional[int]] = mapped_column(default=None)

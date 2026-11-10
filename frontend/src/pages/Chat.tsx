@@ -1,10 +1,14 @@
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import type { FormEvent, KeyboardEvent } from "react";
+import { useLocation, useNavigate } from "react-router-dom";
 import { api } from "../api/client";
 import { ErrorBox } from "../components/Feedback";
 import { useAction } from "../hooks/useAction";
 import { usePlan } from "../state/PlanState";
 import type { ChatMessage } from "../types";
+import { todayMenu } from "../utils/today";
+
+const ASK_TODAY = "¿Qué me toca cocinar hoy? Dime la receta paso a paso.";
 
 const IDEAS = [
   "¿Qué puedo cocinar hoy con lo que tengo?",
@@ -13,7 +17,10 @@ const IDEAS = [
 ];
 
 export default function Chat() {
-  const { apiContext } = usePlan();
+  const { state, apiContext } = usePlan();
+  const location = useLocation();
+  const navigate = useNavigate();
+  const today = useMemo(() => todayMenu(state.plan, state.shopping), [state.plan, state.shopping]);
   const { loading, error, run } = useAction();
   const [messages, setMessages] = useState<ChatMessage[]>([]);
   const [draft, setDraft] = useState("");
@@ -29,9 +36,21 @@ export default function Chat() {
     const next: ChatMessage[] = [...messages, { role: "user", content }];
     setMessages(next);
     setDraft("");
-    const res = await run(() => api.chat(next, apiContext));
+    const res = await run(() => api.chat(next, apiContext, today));
     if (res) setMessages([...next, { role: "assistant", content: res.reply }]);
   }
+
+  // Llegar desde "Cocinar hoy con el asistente" pregunta directamente por la receta de hoy
+  const asked = useRef(false);
+  useEffect(() => {
+    const ask = (location.state as { ask?: boolean } | null)?.ask;
+    if (ask && !asked.current) {
+      asked.current = true;
+      navigate(location.pathname, { replace: true, state: null });
+      if (today) void send(ASK_TODAY);
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
   function onSubmit(e: FormEvent) {
     e.preventDefault();
@@ -60,6 +79,15 @@ export default function Chat() {
           {messages.length === 0 && (
             <div className="ideas">
               <p className="muted">Prueba con una de estas ideas</p>
+              {today ? (
+                <button className="suggest suggest--today" onClick={() => send(ASK_TODAY)}>
+                  ¿Qué me toca cocinar hoy? ({today.day})
+                </button>
+              ) : (
+                <p className="small muted">
+                  Genera tu menú semanal y el asistente podrá decirte la receta que te toca cada día.
+                </p>
+              )}
               {IDEAS.map((i) => (
                 <button key={i} className="suggest" onClick={() => send(i)}>
                   {i}

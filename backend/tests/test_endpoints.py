@@ -33,8 +33,19 @@ def test_pantry_is_per_user(auth_client):
 
 def test_preferences_default_and_upsert(auth_client):
     assert auth_client.get("/api/preferences").json()["people"] == 1
-    body = {"people": 3, "allergies": ["nueces"], "intolerances": ["lactosa"], "dislikes": ["espinacas"]}
+    body = {"people": 3, "allergies": ["nueces"], "intolerances": ["lactosa"], "dislikes": ["espinacas"],
+            "max_kcal_per_day": None}
     assert auth_client.post("/api/preferences", json=body).json() == body
     body["people"] = 4
     auth_client.post("/api/preferences", json=body)
     assert auth_client.get("/api/preferences").json()["people"] == 4
+
+
+def test_preferences_calorie_limit(auth_client):
+    body = {"people": 1, "allergies": [], "intolerances": [], "dislikes": [], "max_kcal_per_day": 1800}
+    assert auth_client.post("/api/preferences", json=body).json()["max_kcal_per_day"] == 1800
+    assert auth_client.get("/api/preferences").json()["max_kcal_per_day"] == 1800
+    body["max_kcal_per_day"] = 300  # absurdamente bajo: se rechaza
+    assert auth_client.post("/api/preferences", json=body).status_code == 422
+    body["max_kcal_per_day"] = None  # sin límite
+    assert auth_client.post("/api/preferences", json=body).json()["max_kcal_per_day"] is None
