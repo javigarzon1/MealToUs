@@ -84,11 +84,11 @@ def test_weekly_plan_dinner_lighter_every_day():
 
 
 def test_weekly_plan_respects_daily_cap():
-    llm = Recorder([plan_json(600, 500), plan_json(500, 300)])
-    result = MealAgent(llm).build_weekly_plan(ctx(900), dish("Comida", 500), dish("Cena", 300))
+    llm = Recorder([plan_json(600, 500), plan_json(500, 300)])  # 1100 > 1000, luego 800
+    result = MealAgent(llm).build_weekly_plan(ctx(1000), dish("Comida", 500), dish("Cena", 300))
     assert llm.calls == 2
-    assert all(d.lunch.kcal_per_serving + d.dinner.kcal_per_serving <= 900 for d in result.days)
-    assert result.target_kcal_per_day <= 900
+    assert all(d.lunch.kcal_per_serving + d.dinner.kcal_per_serving <= 1000 for d in result.days)
+    assert result.target_kcal_per_day <= 1000
 
 
 # ---------- día de inicio ----------
