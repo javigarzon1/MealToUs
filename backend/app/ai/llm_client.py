@@ -2,6 +2,7 @@
 from abc import ABC, abstractmethod
 from typing import Optional
 
+from app.ai.budget import fit_output, request_budget
 from app.core.config import settings
 
 
@@ -62,10 +63,12 @@ class OpenAIClient(LLMClient):
         self._cap = cap
         url = (base_url if base_url is not None else settings.llm_base_url) or "api.openai.com"
         self._host = url.split("//")[-1].split("/")[0]
+        self._budget = request_budget(url, settings.llm_tpm_budget)
 
     def complete(self, system: str, messages: list[dict], max_tokens: int = 2000) -> str:
         full = [{"role": "system", "content": system}, *messages]
-        limit = capped(max_tokens, self._cap)
+        limit = fit_output(capped(max_tokens, self._cap), self._budget,
+                           system, *[m["content"] for m in messages])
         label = f"modelo {self._model} en {self._host}"
         try:
             return self._complete(full, limit)

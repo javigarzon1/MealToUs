@@ -24,6 +24,17 @@ def _ranges_text(bounds: dict) -> str:
     return "; ".join(f"{d.value} ({LABEL[d.value]}) entre {lo} y {hi} kcal" for d, (lo, hi) in bounds.items())
 
 
+def _compact_schema(model_cls: type[BaseModel]) -> str:
+    """Esquema JSON sin los 'title' (ruido) y sin espacios: ocupa ~30 % menos tokens."""
+    def strip(o):
+        if isinstance(o, dict):
+            return {k: strip(v) for k, v in o.items() if k != "title"}
+        if isinstance(o, list):
+            return [strip(v) for v in o]
+        return o
+    return json.dumps(strip(model_cls.model_json_schema()), ensure_ascii=False, separators=(",", ":"))
+
+
 def extract_json(raw: str) -> dict:
     """Tolera que el modelo envuelva el JSON en ```json ... ``` o añada texto."""
     start, end = raw.find("{"), raw.rfind("}")
@@ -48,7 +59,7 @@ class MealAgent:
              prefs: UserPreferences, max_tokens: int = 4000,
              llm: Optional[LLMClient] = None,
              check: Optional[Callable[[BaseModel], list[str]]] = None):
-        schema = json.dumps(model_cls.model_json_schema(), ensure_ascii=False)
+        schema = _compact_schema(model_cls)
         user = (
             f"{task}\n\nResponde SOLO con un JSON válido que cumpla este esquema:\n{schema}"
             f"\n\nDATOS:\n{json.dumps(payload, ensure_ascii=False)}"
@@ -69,10 +80,11 @@ class MealAgent:
                     feedback = "Incumples los límites de calorías o nutrición: " + "; ".join(problems)
             except ValueError as exc:  # incluye JSONDecodeError y ValidationError
                 feedback = f"Tu respuesta no es válida: {exc}"
-            messages += [
-                {"role": "assistant", "content": raw},
-                {"role": "user", "content": feedback + ". Corrígelo y responde solo con JSON."},
-            ]
+            # Se reenvía la petición original con el motivo del rechazo, NO la respuesta fallida
+            # entera: en un reintento duplicaría los tokens y reventaría el límite por minuto.
+            messages = [{"role": "user", "content":
+                         f"{user}\n\nTU RESPUESTA ANTERIOR FUE RECHAZADA: {feedback[:700]}. "
+                         "Corrígelo y responde solo con JSON."}]
         raise AgentError(f"No se obtuvo una respuesta válida del LLM. Último error: {feedback}")
 
     @staticmethod
