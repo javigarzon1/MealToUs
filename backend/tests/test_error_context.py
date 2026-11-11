@@ -44,3 +44,74 @@ def test_groq_request_is_trimmed_to_fit_the_per_minute_limit():
 
 def test_other_providers_keep_the_requested_output():
     assert _asked_tokens("https://generativelanguage.googleapis.com/v1beta/openai/", "x" * 9000) == 5000
+
+
+def _fake_response(content="{}", finish="stop"):
+    from types import SimpleNamespace
+
+    return SimpleNamespace(choices=[SimpleNamespace(message=SimpleNamespace(content=content),
+                                                    finish_reason=finish)])
+
+
+def test_truncated_openai_answer_raises_a_clear_error():
+    from app.ai.llm_client import ResponseTruncated
+
+    client = OpenAIClient(api_key="x", base_url="https://api.groq.com/openai/v1", model="m")
+    client._client.chat.completions.create = lambda **kw: _fake_response('{"a": 1', finish="length")
+    with pytest.raises(ResponseTruncated):
+        client.complete("sys", [{"role": "user", "content": "hola"}])
+
+
+def test_gpt_oss_uses_low_reasoning_effort():
+    client = OpenAIClient(api_key="x", base_url="https://api.groq.com/openai/v1", model="openai/gpt-oss-120b")
+    sent = {}
+    client._client.chat.completions.create = lambda **kw: (sent.update(kw), _fake_response())[1]
+    client.complete("sys", [{"role": "user", "content": "hola"}])
+    assert sent["reasoning_effort"] == "low"
+
+
+def test_other_models_do_not_get_reasoning_effort():
+    client = OpenAIClient(api_key="x", base_url="https://generativelanguage.googleapis.com/v1beta/openai/",
+                          model="gemini-3.5-flash-lite")
+    sent = {}
+    client._client.chat.completions.create = lambda **kw: (sent.update(kw), _fake_response())[1]
+    client.complete("sys", [{"role": "user", "content": "hola"}])
+    assert "reasoning_effort" not in sent
+
+
+def test_provider_that_rejects_reasoning_effort_is_retried_without_it():
+    import httpx
+    from openai import BadRequestError
+
+    client = OpenAIClient(api_key="x", base_url="https://api.groq.com/openai/v1", model="openai/gpt-oss-120b")
+    calls = []
+
+    def create(**kw):
+        calls.append(dict(kw))
+        if "reasoning_effort" in kw:
+            resp = httpx.Response(400, request=httpx.Request("POST", "https://x/y"))
+            raise BadRequestError("Unknown parameter: reasoning_effort", response=resp, body=None)
+        return _fake_response("ok")
+
+    client._client.chat.completions.create = create
+    assert client.complete("sys", [{"role": "user", "content": "hola"}]) == "ok"
+    assert len(calls) == 2 and "reasoning_effort" not in calls[1]
+
+
+def test_falls_back_to_max_tokens_when_max_completion_tokens_is_unknown():
+    import httpx
+    from openai import BadRequestError
+
+    client = OpenAIClient(api_key="x", base_url="https://otro.example/v1", model="m")
+    calls = []
+
+    def create(**kw):
+        calls.append(dict(kw))
+        if "max_completion_tokens" in kw:
+            resp = httpx.Response(400, request=httpx.Request("POST", "https://x/y"))
+            raise BadRequestError("Unsupported parameter: max_completion_tokens", response=resp, body=None)
+        return _fake_response("ok")
+
+    client._client.chat.completions.create = create
+    assert client.complete("sys", [{"role": "user", "content": "hola"}], max_tokens=777) == "ok"
+    assert calls[1]["max_tokens"] == 777
