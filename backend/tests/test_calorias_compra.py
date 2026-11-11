@@ -25,20 +25,32 @@ class Recorder:
         return self.replies.pop(0)
 
 
-def dish(name="Plato", kcal=500, diet="healthy"):
-    return Dish(name=name, diet_type=diet, kcal_per_serving=kcal, ingredients=[])
+def nutrition(kcal, **over):
+    """Macros coherentes con las kcal: 25 % proteína, 45 % hidratos, 30 % grasa."""
+    base = {"protein_g": kcal * 0.25 / 4, "carbs_g": kcal * 0.45 / 4, "fat_g": kcal * 0.30 / 9,
+            "fiber_g": 5, "micros": ["Vitamina C 30 mg"]}
+    return {**base, **over}
 
 
-def options_json(kcals):
-    return json.dumps({"options": [
-        dish(f"Plato {t}", k, t).model_dump(mode="json")
-        for t, k in zip(("healthy", "normal", "sport"), kcals)]})
+def dish(name="Plato", kcal=500, diet="healthy", with_nutrition=True):
+    return Dish(name=name, diet_type=diet, kcal_per_serving=kcal, ingredients=[],
+                nutrition=nutrition(kcal) if with_nutrition else None)
 
 
-def plan_json(lunch_kcal, dinner_kcal, names=ES):
-    days = [DayPlan(day=n, lunch=dish("Comida", lunch_kcal), dinner=dish("Cena", dinner_kcal))
+def options_json(kcals, with_nutrition=True, nutrition_override=None):
+    out = []
+    for t, k in zip(("healthy", "normal", "sport"), kcals):
+        d = dish(f"Plato {t}", k, t, with_nutrition).model_dump(mode="json")
+        if nutrition_override and t == "normal":
+            d["nutrition"] = nutrition_override
+        out.append(d)
+    return json.dumps({"options": out})
+
+
+def plan_json(lunch_kcal, dinner_kcal, diet="healthy", names=ES):
+    days = [DayPlan(day=n, lunch=dish("Comida", lunch_kcal, diet), dinner=dish("Cena", dinner_kcal, diet))
             for n in names]
-    plan = WeeklyPlan(diet_type="healthy", target_kcal_per_day=1800, days=days)
+    plan = WeeklyPlan(diet_type=diet, target_kcal_per_day=1800, days=days)
     return json.dumps(plan.model_dump(mode="json"))
 
 
@@ -46,63 +58,137 @@ def ctx(max_kcal=None):
     return PlanContext(preferences=UserPreferences(people=1, max_kcal_per_day=max_kcal))
 
 
-# ---------- tope de calorías y cena ligera ----------
-def test_lunch_options_respect_the_daily_cap():
-    # Tope 1500 -> la comida admite hasta 900 kcal. La primera respuesta se pasa.
-    llm = Recorder([options_json([500, 1000, 600]), options_json([500, 700, 800])])
-    result = MealAgent(llm).propose_lunch_options(ctx(1500))
-    assert llm.calls == 2
-    assert all(d.kcal_per_serving <= 900 for d in result.options)
+OK_LUNCH = [350, 650, 550]  # ligera <= 400, normal 600-700, deportista 500-600
 
 
-def test_no_cap_means_no_calorie_check():
-    llm = Recorder([options_json([500, 1500, 2500])])
-    MealAgent(llm).propose_lunch_options(ctx(None))
+# ---------- rangos por tipo de comida ----------
+def test_valid_lunch_ranges_pass_first_time():
+    llm = Recorder([options_json(OK_LUNCH)])
+    result = MealAgent(llm).propose_lunch_options(ctx())
     assert llm.calls == 1
+    assert [d.kcal_per_serving for d in result.options] == OK_LUNCH
 
 
-def test_dinner_options_must_be_lighter_than_lunch():
-    llm = Recorder([options_json([500, 600, 700]), options_json([350, 400, 450])])
-    result = MealAgent(llm).propose_dinner_options(ctx(), dish("Comida", 500))
+@pytest.mark.parametrize("bad", [
+    [450, 650, 550],   # ligera por encima de 400
+    [350, 550, 550],   # normal por debajo de 600
+    [350, 750, 550],   # normal por encima de 700
+    [350, 650, 450],   # deportista por debajo de 500
+    [350, 650, 650],   # deportista por encima de 600
+])
+def test_lunch_out_of_range_is_retried(bad):
+    llm = Recorder([options_json(bad), options_json(OK_LUNCH)])
+    result = MealAgent(llm).propose_lunch_options(ctx())
     assert llm.calls == 2
-    assert all(d.kcal_per_serving < 500 for d in result.options)
+    assert [d.kcal_per_serving for d in result.options] == OK_LUNCH
+
+
+def test_lunch_options_respect_the_daily_cap():
+    # Tope 1000 -> la comida admite hasta 600 kcal: la normal de 650 se rechaza
+    llm = Recorder([options_json([350, 650, 550]), options_json([350, 600, 550])])
+    result = MealAgent(llm).propose_lunch_options(ctx(1000))
+    assert llm.calls == 2
+    assert all(d.kcal_per_serving <= 600 for d in result.options)
+
+
+# ---------- la cena es más ligera ----------
+def test_dinner_options_must_be_lighter_than_lunch():
+    # Comida normal de 650: una cena normal de 650 no es más ligera y se rechaza
+    llm = Recorder([options_json([350, 650, 550]), options_json([300, 600, 500])])
+    result = MealAgent(llm).propose_dinner_options(ctx(), dish("Comida", 650, "normal"))
+    assert llm.calls == 2
+    assert all(d.kcal_per_serving < 650 for d in result.options)
+
+
+def test_dinner_never_exceeds_its_own_diet_maximum():
+    # Aunque la comida sea de 700, la cena ligera no puede pasar de 400
+    llm = Recorder([options_json([450, 600, 500]), options_json([380, 600, 500])])
+    result = MealAgent(llm).propose_dinner_options(ctx(), dish("Comida", 700, "normal"))
+    assert llm.calls == 2
+    assert result.options[0].kcal_per_serving <= 400
 
 
 def test_dinner_options_also_fit_in_the_daily_cap():
-    # Comida 800 con tope 1000 -> la cena debe quedar por debajo de 201 kcal
-    llm = Recorder([options_json([300, 350, 400]), options_json([150, 180, 200])])
-    result = MealAgent(llm).propose_dinner_options(ctx(1000), dish("Comida", 800))
+    # Comida 600 con tope 1000 -> la cena debe quedar en 400 kcal o menos
+    llm = Recorder([options_json([300, 500, 350]), options_json([300, 400, 350])])
+    result = MealAgent(llm).propose_dinner_options(ctx(1000), dish("Comida", 600, "normal"))
     assert llm.calls == 2
-    assert all(d.kcal_per_serving + 800 <= 1000 for d in result.options)
+    assert all(d.kcal_per_serving + 600 <= 1000 for d in result.options)
 
 
 def test_weekly_plan_dinner_lighter_every_day():
-    llm = Recorder([plan_json(500, 500), plan_json(500, 400)])
-    result = MealAgent(llm).build_weekly_plan(ctx(), dish("Comida", 500), dish("Cena", 400))
+    llm = Recorder([plan_json(380, 380), plan_json(380, 300)])
+    result = MealAgent(llm).build_weekly_plan(ctx(), dish("Comida", 380), dish("Cena", 300))
     assert llm.calls == 2
     assert all(d.dinner.kcal_per_serving < d.lunch.kcal_per_serving for d in result.days)
 
 
+def test_weekly_plan_lunch_must_match_its_diet_range():
+    llm = Recorder([plan_json(450, 300), plan_json(380, 300)])  # ligera > 400
+    MealAgent(llm).build_weekly_plan(ctx(), dish("Comida", 380), dish("Cena", 300))
+    assert llm.calls == 2
+
+
 def test_weekly_plan_respects_daily_cap():
-    llm = Recorder([plan_json(600, 500), plan_json(500, 300)])  # 1100 > 1000, luego 800
-    result = MealAgent(llm).build_weekly_plan(ctx(1000), dish("Comida", 500), dish("Cena", 300))
+    # Dieta normal con tope 1000: comida 600 + cena 550 = 1150 se rechaza; 600 + 400 = 1000 vale
+    llm = Recorder([plan_json(600, 550, "normal"), plan_json(600, 400, "normal")])
+    result = MealAgent(llm).build_weekly_plan(
+        ctx(1000), dish("Comida", 600, "normal"), dish("Cena", 400, "normal"))
     assert llm.calls == 2
     assert all(d.lunch.kcal_per_serving + d.dinner.kcal_per_serving <= 1000 for d in result.days)
     assert result.target_kcal_per_day <= 1000
 
 
+# ---------- información nutricional ----------
+def test_dishes_without_nutrition_are_retried():
+    llm = Recorder([options_json(OK_LUNCH, with_nutrition=False), options_json(OK_LUNCH)])
+    result = MealAgent(llm).propose_lunch_options(ctx())
+    assert llm.calls == 2
+    assert all(d.nutrition is not None for d in result.options)
+
+
+def test_macros_that_do_not_match_the_calories_are_retried():
+    wrong = nutrition(650, protein_g=5, carbs_g=10, fat_g=2)  # ~78 kcal para un plato de 650
+    llm = Recorder([options_json(OK_LUNCH, nutrition_override=wrong), options_json(OK_LUNCH)])
+    MealAgent(llm).propose_lunch_options(ctx())
+    assert llm.calls == 2
+
+
+def test_nutrition_is_optional_in_the_schema_for_old_saved_menus():
+    old = {"name": "Lentejas", "diet_type": "normal", "kcal_per_serving": 650, "ingredients": []}
+    assert Dish.model_validate(old).nutrition is None
+
+
+def test_nutrition_does_not_go_to_the_shopping_prompt():
+    plan = WeeklyPlan(diet_type="healthy", target_kcal_per_day=700, days=[
+        DayPlan(day=n, lunch=dish("Comida", 380), dinner=dish("Cena", 300)) for n in ES])
+    shopping = json.dumps({"shopping_list": [{"name": "a", "quantity": 1, "unit": "ud", "category": "x"}],
+                           "recipes": []})
+    recipes = json.dumps({"recipes": [{"dish_name": "Comida", "servings": 1, "prep_minutes": 5,
+                                       "ingredients": [], "steps": ["Cocinar"]}]})
+    seen = []
+
+    class Spy(Recorder):
+        def complete(self, system, messages, max_tokens=2000):
+            seen.append(messages[0]["content"])
+            return super().complete(system, messages, max_tokens)
+
+    MealAgent(Spy([shopping, recipes])).build_shopping_and_recipes(ctx(), plan)
+    assert seen and all('"protein_g"' not in m for m in seen)
+
+
 # ---------- día de inicio ----------
 def test_weekly_plan_starts_on_chosen_day_even_if_model_ignores_it():
-    llm = Recorder([plan_json(500, 400)])  # el modelo devuelve lunes..domingo
+    llm = Recorder([plan_json(380, 300)])  # el modelo devuelve lunes..domingo
     result = MealAgent(llm).build_weekly_plan(
-        ctx(), dish("Comida", 500), dish("Cena", 400), start_day="sábado")
+        ctx(), dish("Comida", 380), dish("Cena", 300), start_day="sábado")
     assert [d.day for d in result.days] == ["sábado", "domingo", "lunes", "martes",
                                             "miércoles", "jueves", "viernes"]
 
 
 def test_start_day_defaults_to_monday():
-    llm = Recorder([plan_json(500, 400)])
-    result = MealAgent(llm).build_weekly_plan(ctx(), dish("Comida", 500), dish("Cena", 400))
+    llm = Recorder([plan_json(380, 300)])
+    result = MealAgent(llm).build_weekly_plan(ctx(), dish("Comida", 380), dish("Cena", 300))
     assert result.days[0].day == "lunes" and result.days[-1].day == "domingo"
 
 

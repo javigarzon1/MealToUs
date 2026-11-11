@@ -21,7 +21,8 @@ export default function DinnerOptions() {
     <section className="stack">
       <div className="page__head">
         <h2>¿Y qué cenamos?</h2>
-        <p className="page__lede">Tres opciones de cena que complementan la comida que has elegido.</p>
+        <p className="page__lede">Tres opciones de cena que complementan la comida que has elegido. La cena siempre es más ligera
+          que la comida: la ligera no pasa de 400 kcal y las otras quedan por debajo de tu comida.</p>
       </div>
 
       {!lunch ? (
@@ -42,7 +43,7 @@ export default function DinnerOptions() {
       <ErrorBox message={error} />
 
       {state.dinnerOptions && (
-        <div className="dishes">
+        <div className="dishes-box"><div className="dishes">
           {state.dinnerOptions.options.map((d, i) => (
             <DishCard
               key={d.name}
@@ -52,7 +53,7 @@ export default function DinnerOptions() {
               onChoose={() => chooseDinner(d)}
             />
           ))}
-        </div>
+        </div></div>
       )}
 
       <div className="actions actions--between">

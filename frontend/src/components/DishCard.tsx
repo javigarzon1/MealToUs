@@ -1,7 +1,7 @@
 import type { Dish, DietType } from "../types";
 
 export const DIET_LABEL: Record<DietType, string> = {
-  healthy: "Healthy",
+  healthy: "Ligera",
   normal: "Normal",
   sport: "Deportista",
 };
@@ -36,6 +36,14 @@ export default function DishCard({ dish, selected, index = 0, onChoose }: Props)
           <strong>{dish.kcal_per_serving}</strong>
           <span>kcal por ración</span>
         </div>
+        {dish.nutrition && (
+          <dl className="dish__macros" aria-label="Información nutricional por ración">
+            <div><dt>Prot.</dt><dd>{Math.round(dish.nutrition.protein_g)} g</dd></div>
+            <div><dt>Grasas</dt><dd>{Math.round(dish.nutrition.fat_g)} g</dd></div>
+            <div><dt>Hidr.</dt><dd>{Math.round(dish.nutrition.carbs_g)} g</dd></div>
+            <div><dt>Fibra</dt><dd>{Math.round(dish.nutrition.fiber_g)} g</dd></div>
+          </dl>
+        )}
         <div>
           <p className="dish__sub">Ingredientes por ración</p>
           <ul className="leaders">
@@ -48,6 +56,9 @@ export default function DishCard({ dish, selected, index = 0, onChoose }: Props)
             ))}
           </ul>
         </div>
+        {dish.nutrition && dish.nutrition.micros.length > 0 && (
+          <p className="dish__micros">{dish.nutrition.micros.join(" · ")}</p>
+        )}
         {dish.uses_from_pantry.length > 0 && (
           <p className="dish__pantry">De tu despensa: {dish.uses_from_pantry.join(", ")}</p>
         )}
