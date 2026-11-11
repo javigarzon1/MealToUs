@@ -313,3 +313,44 @@ def test_compact_schema_is_smaller_and_still_describes_the_fields():
     compact = _compact_schema(W)
     assert len(compact) < len(json.dumps(W.model_json_schema(), ensure_ascii=False))
     assert '"protein_g"' in compact and '"kcal_per_serving"' in compact and '"title"' not in compact
+
+
+# ---------- respuestas cortadas (el modelo agota los tokens de salida) ----------
+def test_truncated_answer_is_retried_with_brevity_hint():
+    from app.ai.llm_client import ResponseTruncated
+
+    seen = []
+
+    class Cut(Recorder):
+        def complete(self, system, messages, max_tokens=2000):
+            seen.append(messages[0]["content"])
+            if len(seen) == 1:
+                raise ResponseTruncated("cortada")
+            return super().complete(system, messages, max_tokens)
+
+    llm = Cut([options_json(OK_LUNCH)])
+    result = MealAgent(llm).propose_lunch_options(ctx())
+    assert len(seen) == 2 and len(result.options) == 3
+    assert "se cortó" in seen[1] and "RECHAZADA" in seen[1]
+
+
+def test_persistent_truncation_ends_with_a_clear_error():
+    from app.ai.agent import AgentError
+    from app.ai.llm_client import ResponseTruncated
+
+    class AlwaysCut(Recorder):
+        def complete(self, system, messages, max_tokens=2000):
+            raise ResponseTruncated("cortada")
+
+    with pytest.raises(AgentError, match="se cortó"):
+        MealAgent(AlwaysCut()).propose_lunch_options(ctx())
+
+
+def test_prompt_asks_for_minified_json():
+    llm = Recorder([options_json(OK_LUNCH)])
+    seen = []
+    orig = llm.complete
+    llm.complete = lambda system, messages, max_tokens=2000: (seen.append(messages[0]["content"]),
+                                                               orig(system, messages, max_tokens))[1]
+    MealAgent(llm).propose_lunch_options(ctx())
+    assert "MINIFICADO" in seen[0]

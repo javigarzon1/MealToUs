@@ -22,6 +22,10 @@ def _tag(exc: Exception, label: str) -> Exception:
     return exc
 
 
+class ResponseTruncated(ValueError):
+    """El modelo agotó los tokens de salida y la respuesta quedó a medias (JSON incompleto)."""
+
+
 class LLMClient(ABC):
     @abstractmethod
     def complete(self, system: str, messages: list[dict], max_tokens: int = 2000) -> str:
@@ -47,6 +51,8 @@ class AnthropicClient(LLMClient):
             )
         except Exception as exc:
             raise _tag(exc, f"modelo {self._model} en anthropic") from None
+        if getattr(resp, "stop_reason", None) == "max_tokens":
+            raise ResponseTruncated("la respuesta se cortó al agotar los tokens de salida")
         return "".join(b.text for b in resp.content if b.type == "text")
 
 
@@ -64,6 +70,9 @@ class OpenAIClient(LLMClient):
         url = (base_url if base_url is not None else settings.llm_base_url) or "api.openai.com"
         self._host = url.split("//")[-1].split("/")[0]
         self._budget = request_budget(url, settings.llm_tpm_budget)
+        # gpt-oss «razona» antes de responder y esos tokens cuentan en el límite de salida:
+        # con esfuerzo bajo deja espacio para el JSON y responde antes
+        self._reasoning = "low" if "gpt-oss" in self._model.lower() else None
 
     def complete(self, system: str, messages: list[dict], max_tokens: int = 2000) -> str:
         full = [{"role": "system", "content": system}, *messages]
@@ -78,19 +87,31 @@ class OpenAIClient(LLMClient):
     def _complete(self, full: list[dict], limit: int) -> str:
         from openai import BadRequestError
 
-        try:
-            # Los modelos nuevos de OpenAI y Groq piden max_completion_tokens...
-            resp = self._client.chat.completions.create(
-                model=self._model, max_completion_tokens=limit, messages=full
-            )
-        except BadRequestError as exc:
-            if "max_completion_tokens" not in str(exc):
-                raise
-            # ...y algunos proveedores compatibles solo conocen max_tokens
-            resp = self._client.chat.completions.create(
-                model=self._model, max_tokens=limit, messages=full
-            )
-        return resp.choices[0].message.content or ""
+        kwargs: dict = {"model": self._model, "messages": full}
+        if self._reasoning:
+            kwargs["reasoning_effort"] = self._reasoning
+        # Los modelos nuevos de OpenAI y Groq piden max_completion_tokens; algunos proveedores
+        # compatibles solo conocen max_tokens, o no admiten reasoning_effort: se prueba sin ello.
+        token_param = "max_completion_tokens"
+        resp = None
+        for _ in range(3):
+            try:
+                resp = self._client.chat.completions.create(**kwargs, **{token_param: limit})
+                break
+            except BadRequestError as exc:
+                text = str(exc)
+                if "reasoning_effort" in kwargs and "reasoning_effort" in text:
+                    del kwargs["reasoning_effort"]
+                elif token_param == "max_completion_tokens" and "max_completion_tokens" in text:
+                    token_param = "max_tokens"
+                else:
+                    raise
+        if resp is None:
+            raise RuntimeError("El proveedor rechazó los parámetros de la petición")
+        choice = resp.choices[0]
+        if getattr(choice, "finish_reason", None) == "length":
+            raise ResponseTruncated("la respuesta se cortó al agotar los tokens de salida")
+        return choice.message.content or ""
 
 
 def get_llm_client() -> LLMClient:

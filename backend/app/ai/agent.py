@@ -4,7 +4,7 @@ from typing import Callable, Optional
 from pydantic import BaseModel
 
 from app.ai import prompts
-from app.ai.llm_client import LLMClient, get_llm_client, get_shopping_llm_client
+from app.ai.llm_client import LLMClient, ResponseTruncated, get_llm_client, get_shopping_llm_client
 from app.ai.nutrition import (
     LABEL, RANGES, dinner_bounds, kcal_problems, lunch_bounds, lunch_cap, nutrition_problems,
 )
@@ -61,13 +61,21 @@ class MealAgent:
              check: Optional[Callable[[BaseModel], list[str]]] = None):
         schema = _compact_schema(model_cls)
         user = (
-            f"{task}\n\nResponde SOLO con un JSON válido que cumpla este esquema:\n{schema}"
+            f"{task}\n\nResponde SOLO con un JSON válido y MINIFICADO (sin saltos de línea ni sangría, "
+            f"sin texto fuera del JSON) que cumpla este esquema:\n{schema}"
             f"\n\nDATOS:\n{json.dumps(payload, ensure_ascii=False)}"
         )
         messages = [{"role": "user", "content": user}]
         feedback = ""
         for _ in range(self.MAX_RETRIES + 1):
-            raw = (llm or self.llm).complete(prompts.SYSTEM_PROMPT, messages, max_tokens)
+            try:
+                raw = (llm or self.llm).complete(prompts.SYSTEM_PROMPT, messages, max_tokens)
+            except ResponseTruncated:
+                feedback = ("tu respuesta se cortó por el límite de longitud: sé más breve, usa nombres "
+                            "cortos, como máximo 6 ingredientes por plato y JSON minificado")
+                messages = [{"role": "user", "content": f"{user}\n\nTU RESPUESTA ANTERIOR FUE RECHAZADA: "
+                                                          f"{feedback}. Responde solo con JSON."}]
+                continue
             try:
                 result = model_cls.model_validate(extract_json(raw))
                 conflicts = find_conflicts(extract_ingredient_names(result), prefs)
