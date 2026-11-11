@@ -260,3 +260,56 @@ def test_template_needs_a_name_and_has_a_limit(auth_client):
     for i in range(30):
         assert auth_client.post("/api/templates", json={"name": f"p{i}", "items": ITEMS}).status_code == 200
     assert auth_client.post("/api/templates", json={"name": "una más", "items": ITEMS}).status_code == 400
+
+
+# ---------- límite de tokens por petición (Groq: 8000 por minuto) ----------
+from app.ai.budget import GROQ_BUDGET, estimate_tokens, fit_output, request_budget  # noqa: E402
+
+
+def test_budget_is_automatic_only_for_groq():
+    assert request_budget("https://api.groq.com/openai/v1") == GROQ_BUDGET
+    assert request_budget("https://generativelanguage.googleapis.com/v1beta/openai/") == 0
+    assert request_budget("") == 0
+    assert request_budget("https://api.groq.com/openai/v1", override=6000) == 6000
+    assert request_budget("https://otro.example", override=6000) == 6000
+
+
+def test_output_is_reduced_so_input_plus_output_fit():
+    text = "x" * 9000  # ~3050 tokens de entrada
+    out = fit_output(5000, GROQ_BUDGET, text)
+    assert out < 5000
+    assert estimate_tokens(text) + out <= GROQ_BUDGET
+
+
+def test_output_untouched_without_budget_or_with_room():
+    assert fit_output(5000, 0, "x" * 90000) == 5000
+    assert fit_output(1500, GROQ_BUDGET, "hola") == 1500
+
+
+def test_output_never_below_the_floor():
+    assert fit_output(5000, GROQ_BUDGET, "x" * 60000) == 1200
+
+
+def test_retry_does_not_resend_the_failed_answer():
+    big = options_json([450, 650, 550])  # ligera fuera de rango -> se rechaza
+    seen = []
+
+    class Spy(Recorder):
+        def complete(self, system, messages, max_tokens=2000):
+            seen.append(messages)
+            return super().complete(system, messages, max_tokens)
+
+    llm = Spy([big, options_json(OK_LUNCH)])
+    MealAgent(llm).propose_lunch_options(ctx())
+    assert len(seen) == 2
+    assert len(seen[1]) == 1                                  # un solo mensaje, no se acumula
+    assert "Plato healthy" not in seen[1][0]["content"].split("RECHAZADA")[0]  # sin la respuesta previa
+    assert "RECHAZADA" in seen[1][0]["content"] and "400" in seen[1][0]["content"]
+
+
+def test_compact_schema_is_smaller_and_still_describes_the_fields():
+    from app.ai.agent import _compact_schema
+    from app.schemas.menu import WeeklyPlan as W
+    compact = _compact_schema(W)
+    assert len(compact) < len(json.dumps(W.model_json_schema(), ensure_ascii=False))
+    assert '"protein_g"' in compact and '"kcal_per_serving"' in compact and '"title"' not in compact

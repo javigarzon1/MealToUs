@@ -20,6 +20,8 @@ class Settings(BaseSettings):
     # Tope de tokens de respuesta por petición (0 = sin tope). Útil en planes gratuitos con límite
     # de tokens por minuto: Groq cuenta lo que PIDES, no solo lo que se genera.
     llm_max_tokens: int = 0
+    # Tokens máximos por petición (entrada + salida). 0 = automático: 7500 en Groq, sin límite en el resto.
+    llm_tpm_budget: int = 0
 
     # Segundo proveedor opcional SOLO para la lista de la compra (p. ej. Gemini). Si
     # SHOPPING_LLM_PROVIDER está vacío, la lista se genera con el proveedor principal.
