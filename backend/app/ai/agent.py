@@ -36,11 +36,25 @@ def _compact_schema(model_cls: type[BaseModel]) -> str:
 
 
 def extract_json(raw: str) -> dict:
-    """Tolera que el modelo envuelva el JSON en ```json ... ``` o añada texto."""
-    start, end = raw.find("{"), raw.rfind("}")
-    if start == -1 or end == -1:
-        raise ValueError("La respuesta no contiene JSON")
-    return json.loads(raw[start : end + 1])
+    """Primer objeto JSON completo de la respuesta.
+
+    Tolera ```json ... ```, texto antes o después y que el modelo repita el objeto: lee el primero
+    y descarta lo que venga detrás (con first '{' .. last '}' esos casos daban "Extra data").
+    """
+    decoder = json.JSONDecoder()
+    start = raw.find("{")
+    error: Optional[ValueError] = None
+    while start != -1:
+        try:
+            obj, _ = decoder.raw_decode(raw, start)
+            if isinstance(obj, dict):
+                return obj
+        except ValueError as exc:
+            error = error or exc
+        start = raw.find("{", start + 1)
+    if error is not None:
+        raise error
+    raise ValueError("La respuesta no contiene JSON")
 
 
 class MealAgent:

@@ -354,3 +354,40 @@ def test_prompt_asks_for_minified_json():
                                                                orig(system, messages, max_tokens))[1]
     MealAgent(llm).propose_lunch_options(ctx())
     assert "MINIFICADO" in seen[0]
+
+
+# ---------- extracción del JSON de la respuesta ----------
+from app.ai.agent import extract_json  # noqa: E402
+
+
+@pytest.mark.parametrize("raw", [
+    '{"a": 1}',
+    '```json\n{"a": 1}\n```',
+    'Aquí tienes el menú: {"a": 1} ¡Que aproveche!',
+    '{"a": 1}{"a": 1}',                      # objeto repetido
+    '{"a": 1}\n\nNota: usa {sal} con moderación.',   # llaves en el texto de detrás
+    '{"a": 1}\n```',
+    '{"a": "con } llave y { dentro"}',
+])
+def test_extract_json_reads_the_first_complete_object(raw):
+    assert "a" in extract_json(raw)
+
+
+def test_extract_json_keeps_the_first_of_two_different_objects():
+    assert extract_json('{"a": 1} {"a": 2}') == {"a": 1}
+
+
+def test_extract_json_skips_leading_text_with_braces():
+    assert extract_json('Ejemplo {no json} y ahora {"a": 1}') == {"a": 1}
+
+
+@pytest.mark.parametrize("raw", ["sin json", '{"a": 1', ""])
+def test_extract_json_fails_cleanly_when_there_is_no_valid_object(raw):
+    with pytest.raises(ValueError):
+        extract_json(raw)
+
+
+def test_agent_accepts_an_answer_with_trailing_junk():
+    llm = Recorder([options_json(OK_LUNCH) + "\n\nNota: platos de {tu despensa}."])
+    result = MealAgent(llm).propose_lunch_options(ctx())
+    assert llm.calls == 1 and len(result.options) == 3
