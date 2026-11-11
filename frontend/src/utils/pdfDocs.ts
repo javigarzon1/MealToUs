@@ -1,6 +1,7 @@
 import { DIET_LABEL, fmt } from "../components/DishCard";
 import type { ShoppingItem, ShoppingResult, WeeklyPlan } from "../types";
 import { dayEs } from "./days";
+import { averageMacros, dayMacros, dishMacros, r } from "./nutrition";
 import type { PdfBlock } from "./pdf";
 
 const CORAL: [number, number, number] = [1, 0.42, 0.24];
@@ -31,6 +32,7 @@ export function menuBlocks(plan: WeeklyPlan, maxKcal: number | null): PdfBlock[]
     blocks.push({ text: `Cena: ${d.dinner.name} (${d.dinner.kcal_per_serving} kcal)`, indent: 12 });
     blocks.push({ text: `Total del día: ${total} kcal`, size: 9, color: GREY, indent: 12 });
   }
+  blocks.push(...nutritionBlocks(plan));
   blocks.push({ text: "Las calorías son estimaciones generadas por IA y no sustituyen el consejo de un dietista.", size: 8, color: GREY, gapBefore: 18 });
   return blocks;
 }
@@ -66,6 +68,34 @@ export function shoppingBlocks(extra: ShoppingItem[], shopping: ShoppingResult |
       blocks.push({ text: "Preparación", bold: true, gapBefore: 5 });
       r.steps.forEach((s, k) => blocks.push({ text: `${k + 1}. ${s}`, indent: 10, gapBefore: 1 }));
     }
+  }
+  return blocks;
+}
+
+/** Resumen nutricional al final del menú (solo si el menú trae la información). */
+function nutritionBlocks(plan: WeeklyPlan): PdfBlock[] {
+  const avg = averageMacros(plan.days);
+  if (!avg) return [];
+  const line = (m: { kcal: number; protein: number; fat: number; carbs: number; fiber: number }) =>
+    `${r(m.kcal)} kcal · Proteínas ${r(m.protein)} g · Grasas ${r(m.fat)} g · Hidratos ${r(m.carbs)} g · Fibra ${r(m.fiber)} g`;
+  const blocks: PdfBlock[] = [
+    { text: "Resumen nutricional", size: 18, bold: true, color: CORAL, gapBefore: 22 },
+    { rule: true },
+    { text: "Valores por ración estimados por la IA, orientativos.", size: 9, color: GREY },
+    { text: "Media diaria", bold: true, gapBefore: 6 },
+    { text: line(avg), indent: 10 },
+  ];
+  for (const d of plan.days) {
+    blocks.push({ text: cap(dayEs(d.day)), size: 12, bold: true, gapBefore: 8 });
+    for (const [label, dish] of [["Comida", d.lunch], ["Cena", d.dinner]] as const) {
+      const m = dishMacros(dish);
+      blocks.push({ text: `${label}: ${dish.name}`, indent: 10, gapBefore: 1 });
+      if (m) blocks.push({ text: line(m), size: 9, color: GREY, indent: 22 });
+      const micros = dish.nutrition?.micros ?? [];
+      if (micros.length) blocks.push({ text: `Vitaminas y minerales: ${micros.join(", ")}`, size: 9, color: GREY, indent: 22 });
+    }
+    const t = dayMacros(d);
+    if (t) blocks.push({ text: `Total del día: ${line(t)}`, size: 9, bold: true, indent: 10, gapBefore: 1 });
   }
   return blocks;
 }

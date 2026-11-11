@@ -21,13 +21,23 @@ class FakeLLM:
         return self.replies.pop(0)
 
 
+KCAL = {"healthy": 350, "normal": 650, "sport": 550}  # dentro de los rangos de cada dieta
+
+
+def nutrition(kcal: int) -> dict:
+    """Macros coherentes con las kcal: 25 % proteína, 45 % hidratos, 30 % grasa."""
+    return {"protein_g": round(kcal * 0.25 / 4), "carbs_g": round(kcal * 0.45 / 4),
+            "fat_g": round(kcal * 0.30 / 9), "fiber_g": 5, "micros": ["Vitamina C 30 mg"]}
+
+
 def options(ingredient: str) -> str:
     dishes = [
         {
             "name": f"Plato {t}",
             "diet_type": t,
-            "kcal_per_serving": 500,
+            "kcal_per_serving": KCAL[t],
             "ingredients": [{"name": ingredient, "quantity": 100, "unit": "g"}],
+            "nutrition": nutrition(KCAL[t]),
         }
         for t in ("healthy", "normal", "sport")
     ]
@@ -80,8 +90,10 @@ def test_weekly_plan_with_diet():
             days.append(
                 DayPlan(
                     day=day_name,
-                    lunch=Dish(name="Ensalada", diet_type="healthy", kcal_per_serving=500, ingredients=[]),
-                    dinner=Dish(name="Sopa", diet_type="healthy", kcal_per_serving=400, ingredients=[])
+                    lunch=Dish(name="Ensalada", diet_type="healthy", kcal_per_serving=380, ingredients=[],
+                               nutrition=nutrition(380)),
+                    dinner=Dish(name="Sopa", diet_type="healthy", kcal_per_serving=300, ingredients=[],
+                                nutrition=nutrition(300))
                 )
             )
         weekly = WeeklyPlan(diet_type="healthy", target_kcal_per_day=2000, days=days)
@@ -89,8 +101,8 @@ def test_weekly_plan_with_diet():
     
     llm = FakeLLM(weekly_replies)
     ctx = PlanContext(preferences=UserPreferences(people=1))
-    plan_dish1 = Dish(name="Ensalada", diet_type="healthy", kcal_per_serving=500, ingredients=[])
-    plan_dish2 = Dish(name="Sopa", diet_type="healthy", kcal_per_serving=400, ingredients=[])
+    plan_dish1 = Dish(name="Ensalada", diet_type="healthy", kcal_per_serving=380, ingredients=[])
+    plan_dish2 = Dish(name="Sopa", diet_type="healthy", kcal_per_serving=300, ingredients=[])
     result = MealAgent(llm).build_weekly_plan(ctx, plan_dish1, plan_dish2)
     assert result.diet_type.value == "healthy"
     assert len(result.days) == 7

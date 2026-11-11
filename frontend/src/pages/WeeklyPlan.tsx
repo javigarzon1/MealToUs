@@ -8,6 +8,7 @@ import { WIDE_QUERY, useMediaQuery } from "../hooks/useMediaQuery";
 import { useChat } from "../state/ChatState";
 import { usePlan } from "../state/PlanState";
 import { WEEKDAYS_ES, dayEs, todayEs } from "../utils/days";
+import NutritionSummary from "../components/NutritionSummary";
 import { downloadPdf } from "../utils/pdf";
 import { menuBlocks } from "../utils/pdfDocs";
 
@@ -140,6 +141,8 @@ export default function WeeklyPlan() {
               );
             })}
           </div>
+
+          <NutritionSummary days={plan.days} />
 
           <div className="cta-panel">
             <h3>¿Te gusta este menú?</h3>

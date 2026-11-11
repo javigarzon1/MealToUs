@@ -337,3 +337,43 @@ select.input { appearance: auto; }
 .hist:has(summary:focus-visible) > summary { outline: 3px solid var(--lemon); outline-offset: 3px; border-radius: 6px; }
 .today__shop { display: grid; gap: 0.5rem; justify-items: start; padding-top: 0.8rem; border-top: 1px dashed var(--line-strong); }
 .today__shop .bar { width: 100%; }
+
+/* ───────── Tres opciones en una fila: tarjetas estrechas ───────── */
+.dishes-box { container-type: inline-size; }
+.dishes { grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 0.9rem; }
+.dishes .dish__band { padding: 0.75rem 0.85rem 0.8rem; }
+.dishes .dish__name { font-size: 1.1rem; margin-top: 0.35rem; line-height: 1.2; overflow-wrap: anywhere; }
+.dishes .dish__body { padding: 0.8rem 0.85rem 0.9rem; gap: 0.7rem; }
+.dishes .dish__kcal strong { font-size: 2.3rem; }
+.dishes .dish__kcal span { font-size: 0.78rem; }
+.dishes .leaders { font-size: 0.82rem; }
+.dishes .leaders li { padding: 0.15rem 0; gap: 0.3rem; flex-wrap: wrap; }
+.dishes .leaders__fill { min-width: 0.4rem; }
+.dishes .dish__pantry { font-size: 0.78rem; padding: 0.4rem 0.6rem; }
+.dishes .btn { padding-inline: 0.5rem; }
+.dish__macros { display: grid; grid-template-columns: repeat(4, 1fr); gap: 0.3rem; margin: 0; }
+.dish__macros div { background: var(--tone-tint); border-radius: var(--r-sm); padding: 0.3rem 0.2rem; text-align: center; min-width: 0; }
+.dish__macros dt { font-size: 0.66rem; font-weight: 700; color: var(--tone-ink); }
+.dish__macros dd { margin: 0; font-size: 0.78rem; font-weight: 800; font-variant-numeric: tabular-nums; white-space: nowrap; }
+.dish__macros dt { white-space: nowrap; }
+.dish__micros { margin: 0; font-size: 0.74rem; color: var(--muted); line-height: 1.35; }
+/* En un espacio muy estrecho (móvil, o el menú con los dos paneles abiertos) vuelven a apilarse */
+@container (max-width: 620px) {
+  .dishes { grid-template-columns: 1fr; }
+}
+
+/* ───────── Resumen nutricional ───────── */
+.nutri { display: grid; gap: 0.8rem; background: var(--surface); border: 1px solid var(--line); border-radius: var(--r-lg); padding: 1.25rem; }
+.nutri h3 { margin: 0; }
+.nutri p { margin: 0; }
+.nutri__avg { display: flex; flex-wrap: wrap; gap: 0.4rem 1.1rem; background: var(--surface-2); border-radius: var(--r-md); padding: 0.75rem 1rem; font-size: var(--t-sm); }
+.nutri__scroll { overflow-x: auto; }
+.nutri__table { width: 100%; border-collapse: collapse; font-size: 0.88rem; font-variant-numeric: tabular-nums; min-width: 560px; }
+.nutri__table th, .nutri__table td { padding: 0.4rem 0.6rem; text-align: right; border-bottom: 1px solid var(--line); }
+.nutri__table thead th { text-align: right; font-weight: 800; color: var(--ink-2); }
+.nutri__table th[scope="row"], .nutri__table thead th:first-child { text-align: left; }
+.nutri__day th { text-align: left; background: var(--surface-2); text-transform: capitalize; font-family: var(--font-display); }
+.nutri__when { font-weight: 800; color: var(--muted); font-size: 0.78rem; }
+.nutri__micros { display: block; font-weight: 400; color: var(--muted); font-size: 0.74rem; }
+.nutri__meal th { font-weight: 600; }
+.nutri__total th, .nutri__total td { font-weight: 900; border-bottom: 2px solid var(--line-strong); }

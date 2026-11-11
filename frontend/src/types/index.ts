@@ -1,8 +1,16 @@
 export type DietType = "healthy" | "normal" | "sport";
 export interface Ingredient { name: string; quantity: number; unit: string }
+/** Información nutricional estimada por ración (la calcula la IA) */
+export interface Nutrition {
+  protein_g: number; fat_g: number; carbs_g: number; fiber_g: number;
+  /** Vitaminas y minerales destacados con su cantidad, p. ej. "Vitamina C 45 mg" */
+  micros: string[];
+}
 export interface Dish {
   name: string; diet_type: DietType; kcal_per_serving: number;
   ingredients: Ingredient[]; uses_from_pantry: string[];
+  /** Los menús guardados antes de existir este campo no lo traen */
+  nutrition?: Nutrition | null;
 }
 export interface DishOptions { options: Dish[] }
 export interface DayPlan { day: string; lunch: Dish; dinner: Dish }

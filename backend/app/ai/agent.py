@@ -5,8 +5,11 @@ from pydantic import BaseModel
 
 from app.ai import prompts
 from app.ai.llm_client import LLMClient, get_llm_client, get_shopping_llm_client
+from app.ai.nutrition import (
+    LABEL, RANGES, dinner_bounds, kcal_problems, lunch_bounds, lunch_cap, nutrition_problems,
+)
 from app.ai.validators import extract_ingredient_names, find_conflicts
-from app.schemas.menu import WEEKDAYS_ES, Dish, DishOptions, WeeklyPlan
+from app.schemas.menu import WEEKDAYS_ES, DietType, Dish, DishOptions, WeeklyPlan
 from app.schemas.pantry import PantryItem
 from app.schemas.preferences import UserPreferences
 from app.schemas.requests import PlanContext, TodayMenu
@@ -17,12 +20,8 @@ class AgentError(Exception):
     pass
 
 
-# Reparto del tope diario: la comida puede llevar hasta el 60 % y la cena es siempre más ligera
-LUNCH_SHARE = 0.6
-
-
-def lunch_cap(max_kcal: Optional[int]) -> Optional[int]:
-    return round(max_kcal * LUNCH_SHARE) if max_kcal else None
+def _ranges_text(bounds: dict) -> str:
+    return "; ".join(f"{d.value} ({LABEL[d.value]}) entre {lo} y {hi} kcal" for d, (lo, hi) in bounds.items())
 
 
 def extract_json(raw: str) -> dict:
@@ -67,7 +66,7 @@ class MealAgent:
                     problems = check(result) if check else []
                     if not problems:
                         return result
-                    feedback = "Incumples los límites de calorías: " + "; ".join(problems)
+                    feedback = "Incumples los límites de calorías o nutrición: " + "; ".join(problems)
             except ValueError as exc:  # incluye JSONDecodeError y ValidationError
                 feedback = f"Tu respuesta no es válida: {exc}"
             messages += [
@@ -85,25 +84,33 @@ class MealAgent:
 
     # ---- pasos del flujo ----
     def propose_lunch_options(self, ctx: PlanContext) -> DishOptions:
-        cap = lunch_cap(ctx.preferences.max_kcal_per_day)
-        task = prompts.TASK_LUNCH
-        check = None
-        if cap:
-            task += prompts.LUNCH_CAP.format(cap=cap, day=ctx.preferences.max_kcal_per_day)
-            check = lambda r: [f"'{d.name}' tiene {d.kcal_per_serving} kcal (máximo {cap})"
-                               for d in r.options if d.kcal_per_serving > cap]
+        max_kcal = ctx.preferences.max_kcal_per_day
+        bounds = {d: lunch_bounds(d, max_kcal) for d in DietType}
+        task = prompts.TASK_LUNCH + prompts.LUNCH_RANGES.format(ranges=_ranges_text(bounds))
+        if max_kcal:
+            task += prompts.LUNCH_CAP.format(cap=lunch_cap(max_kcal), day=max_kcal)
+
+        def check(r: DishOptions) -> list[str]:
+            problems: list[str] = []
+            for d in r.options:
+                problems += kcal_problems(d, *bounds[d.diet_type]) + nutrition_problems(d)
+            return problems
+
         return self._run(task, self._base(ctx.pantry, ctx.preferences),
                          DishOptions, ctx.preferences, check=check)
 
     def propose_dinner_options(self, ctx: PlanContext, chosen_lunch: Dish) -> DishOptions:
-        # La cena es siempre más ligera que la comida elegida y cabe en el tope diario
-        limit = chosen_lunch.kcal_per_serving
-        if ctx.preferences.max_kcal_per_day:
-            limit = min(limit, ctx.preferences.max_kcal_per_day - chosen_lunch.kcal_per_serving + 1)
-        limit = max(limit, 150)
-        task = prompts.TASK_DINNER.format(lunch=chosen_lunch.model_dump_json(), limit=limit)
-        check = lambda r: [f"'{d.name}' tiene {d.kcal_per_serving} kcal (debe tener menos de {limit})"
-                           for d in r.options if d.kcal_per_serving >= limit]
+        # La cena respeta el rango de su tipo, es más ligera que la comida y cabe en el tope diario
+        max_kcal = ctx.preferences.max_kcal_per_day
+        bounds = {d: dinner_bounds(d, chosen_lunch.kcal_per_serving, max_kcal) for d in DietType}
+        task = prompts.TASK_DINNER.format(lunch=chosen_lunch.model_dump_json(), ranges=_ranges_text(bounds))
+
+        def check(r: DishOptions) -> list[str]:
+            problems: list[str] = []
+            for d in r.options:
+                problems += kcal_problems(d, *bounds[d.diet_type]) + nutrition_problems(d)
+            return problems
+
         return self._run(task, self._base(ctx.pantry, ctx.preferences),
                          DishOptions, ctx.preferences, check=check)
 
@@ -114,24 +121,30 @@ class MealAgent:
         if max_kcal:
             kcal = min(kcal, max_kcal)
         start = start_day or WEEKDAYS_ES[0]
+        lo, hi = lunch_bounds(lunch.diet_type, max_kcal)
+        dinner_hi = RANGES[lunch.diet_type.value][1]
         task = prompts.TASK_WEEKLY.format(
             diet=lunch.diet_type.value, kcal=kcal, lunch=lunch.name, dinner=dinner.name,
-            start=start, cap=prompts.WEEKLY_CAP.format(max=max_kcal) if max_kcal else "",
+            start=start, lo=lo, hi=hi, dhi=dinner_hi,
+            cap=prompts.WEEKLY_CAP.format(max=max_kcal) if max_kcal else "",
         )
 
         def check(plan: WeeklyPlan) -> list[str]:
-            problems = []
+            problems: list[str] = []
             for d in plan.days:
-                if d.dinner.kcal_per_serving >= d.lunch.kcal_per_serving:
-                    problems.append(f"{d.day}: la cena ({d.dinner.kcal_per_serving} kcal) debe ser "
-                                    f"más ligera que la comida ({d.lunch.kcal_per_serving} kcal)")
-                total = d.lunch.kcal_per_serving + d.dinner.kcal_per_serving
-                if max_kcal and total > max_kcal:
-                    problems.append(f"{d.day}: {total} kcal supera el tope de {max_kcal}")
+                l, n = d.lunch.kcal_per_serving, d.dinner.kcal_per_serving
+                if not lo <= l <= hi:
+                    problems.append(f"{d.day}: la comida tiene {l} kcal y debe estar entre {lo} y {hi}")
+                if n >= l or n > dinner_hi:
+                    problems.append(f"{d.day}: la cena ({n} kcal) debe ser más ligera que la comida "
+                                    f"({l} kcal) y no pasar de {dinner_hi}")
+                if max_kcal and l + n > max_kcal:
+                    problems.append(f"{d.day}: {l + n} kcal supera el tope de {max_kcal}")
+                problems += nutrition_problems(d.lunch) + nutrition_problems(d.dinner)
             return problems
 
         plan = self._run(task, self._base(ctx.pantry, ctx.preferences),
-                         WeeklyPlan, ctx.preferences, max_tokens=6000, check=check)
+                         WeeklyPlan, ctx.preferences, max_tokens=5000, check=check)
         # Los nombres de día los pone el código: siempre 7 seguidos desde el día elegido
         first = WEEKDAYS_ES.index(start)
         for i, day in enumerate(plan.days):
@@ -144,6 +157,9 @@ class MealAgent:
         """Dos peticiones pequeñas: la lista (proveedor de la compra) y las recetas (principal)."""
         people = ctx.preferences.people
         menu = plan.model_dump(mode="json")
+        for day in menu["days"]:  # la nutrición no hace falta para comprar ni para las recetas
+            for meal in (day["lunch"], day["dinner"]):
+                meal.pop("nutrition", None)
 
         list_payload = {**self._base(ctx.pantry, ctx.preferences), "menu": menu}
         shopping = self._run(prompts.TASK_SHOPPING_LIST.format(people=people), list_payload,

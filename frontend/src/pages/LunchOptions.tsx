@@ -33,8 +33,8 @@ export default function LunchOptions() {
       <div className="page__head">
         <h2>¿Qué comemos hoy?</h2>
         <p className="page__lede">
-          La IA propone tres opciones con lo que tienes: Healthy, Normal y Deportista. La que elijas fija
-          las calorías de referencia para el resto de la semana.
+          La IA propone tres opciones con lo que tienes: Ligera (hasta 400 kcal), Normal (600-700 kcal) y Deportista
+          (500-600 kcal). La que elijas fija las calorías de referencia para el resto de la semana.
         </p>
       </div>
 
@@ -52,7 +52,7 @@ export default function LunchOptions() {
       <ErrorBox message={error} />
 
       {state.lunchOptions && (
-        <div className="dishes">
+        <div className="dishes-box"><div className="dishes">
           {state.lunchOptions.options.map((d, i) => (
             <DishCard
               key={d.name}
@@ -62,7 +62,7 @@ export default function LunchOptions() {
               onChoose={() => chooseLunch(d)}
             />
           ))}
-        </div>
+        </div></div>
       )}
 
       <div className="actions actions--between">
