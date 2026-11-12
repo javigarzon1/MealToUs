@@ -394,3 +394,22 @@ select.input { appearance: auto; }
 .day__micros span { font-weight: 700; color: var(--ink-2); }
 .nutri__more > summary { cursor: pointer; font-weight: 800; padding: 0.3rem 0; }
 .nutri__more[open] > summary { margin-bottom: 0.6rem; }
+
+/* ───────── Dónde se usa cada ingrediente ───────── */
+.check-row { position: relative; }
+.uses { flex: 1; display: flex; align-items: baseline; gap: 0.35rem; min-width: 0; }
+.uses > label { flex: 0 1 auto; }
+.uses__btn { all: unset; cursor: pointer; color: var(--muted); font-size: 0.95rem; line-height: 1; padding: 0 0.15rem; border-radius: 50%; }
+.uses__btn:hover { color: var(--ink); }
+.uses__btn:focus-visible { outline: 3px solid var(--lemon); box-shadow: 0 0 0 5px var(--ink); }
+.uses__pop {
+  position: absolute; z-index: 20; left: 2rem; top: calc(100% - 0.1rem); width: min(19rem, calc(100% - 2rem));
+  display: grid; gap: 0.4rem; padding: 0.7rem 0.85rem; background: var(--surface);
+  border: 1.5px solid var(--ink); border-radius: var(--r-sm); box-shadow: 0 6px 18px rgba(0, 0, 0, 0.18);
+  font-size: var(--t-sm); text-align: left;
+}
+.uses__pop ul { list-style: none; margin: 0; padding: 0; display: grid; gap: 0.4rem; }
+.uses__pop li { display: grid; gap: 0.05rem; }
+.uses__when { font-weight: 800; text-transform: capitalize; }
+.uses__dish { all: unset; cursor: pointer; color: var(--normal-ink); text-decoration: underline; text-underline-offset: 2px; }
+.uses__dish:focus-visible { outline: 3px solid var(--lemon); box-shadow: 0 0 0 5px var(--ink); }
