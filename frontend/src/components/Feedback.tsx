@@ -1,4 +1,5 @@
 import { Link } from "react-router-dom";
+import WaitQuiz from "./WaitQuiz";
 
 export function ErrorBox({ message }: { message: string | null }) {
   if (!message) return null;
@@ -9,12 +10,16 @@ export function ErrorBox({ message }: { message: string | null }) {
   );
 }
 
-export function Loading({ text }: { text: string }) {
+/** Aviso de carga. Con `quiz`, añade un juego de preguntas para las esperas largas. */
+export function Loading({ text, quiz = false }: { text: string; quiz?: boolean }) {
   return (
-    <div className="note note--loading" role="status">
-      <span className="spinner" aria-hidden="true" />
-      <p>{text}</p>
-    </div>
+    <>
+      <div className="note note--loading" role="status">
+        <span className="spinner" aria-hidden="true" />
+        <p>{text}</p>
+      </div>
+      {quiz && <WaitQuiz />}
+    </>
   );
 }
 

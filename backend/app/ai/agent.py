@@ -1,4 +1,5 @@
 import json
+import logging
 from typing import Callable, Optional
 
 from pydantic import BaseModel
@@ -57,6 +58,9 @@ def extract_json(raw: str) -> dict:
     raise ValueError("La respuesta no contiene JSON")
 
 
+log = logging.getLogger(__name__)
+
+
 class MealAgent:
     MAX_RETRIES = 2
 
@@ -67,12 +71,35 @@ class MealAgent:
         if shopping_llm is None and llm is None:
             shopping_llm = get_shopping_llm_client()
         self.shopping_llm = shopping_llm or self.llm
+        # Plan B: el segundo proveedor (si existe) toma el relevo cuando el principal falla
+        self.backup = shopping_llm if shopping_llm is not None and shopping_llm is not self.llm else None
 
     # ---- núcleo: pedir JSON, validar esquema + restricciones, reintentar con feedback ----
+    def _chain(self, first: Optional[LLMClient]) -> list[LLMClient]:
+        """Proveedores a probar en orden: el pedido, luego el otro si hay plan B."""
+        chain = [first or self.llm]
+        for other in (self.llm, self.backup):
+            if other is not None and all(other is not c for c in chain):
+                chain.append(other)
+        return chain
+
     def _run(self, task: str, payload: dict, model_cls: type[BaseModel],
              prefs: UserPreferences, max_tokens: int = 4000,
              llm: Optional[LLMClient] = None,
              check: Optional[Callable[[BaseModel], list[str]]] = None):
+        """Prueba cada proveedor; si uno falla (error de API o respuestas inválidas) pasa al siguiente."""
+        chain = self._chain(llm)
+        for i, client in enumerate(chain):
+            try:
+                return self._run_with(client, task, payload, model_cls, prefs, max_tokens, check)
+            except Exception as exc:
+                if i == len(chain) - 1:
+                    raise
+                log.warning("Proveedor LLM falló (%s); se usa el plan B", str(exc)[:200])
+
+    def _run_with(self, client: LLMClient, task: str, payload: dict, model_cls: type[BaseModel],
+                  prefs: UserPreferences, max_tokens: int,
+                  check: Optional[Callable[[BaseModel], list[str]]]):
         schema = _compact_schema(model_cls)
         user = (
             f"{task}\n\nResponde SOLO con un JSON válido y MINIFICADO (sin saltos de línea ni sangría, "
@@ -83,7 +110,7 @@ class MealAgent:
         feedback = ""
         for _ in range(self.MAX_RETRIES + 1):
             try:
-                raw = (llm or self.llm).complete(prompts.SYSTEM_PROMPT, messages, max_tokens)
+                raw = client.complete(prompts.SYSTEM_PROMPT, messages, max_tokens)
             except ResponseTruncated:
                 feedback = ("tu respuesta se cortó por el límite de longitud: sé más breve, usa nombres "
                             "cortos, como máximo 6 ingredientes por plato y JSON minificado")
@@ -217,4 +244,10 @@ class MealAgent:
             system += "\n\nContexto del usuario:\n" + context.model_dump_json()
         if today:
             system += prompts.CHAT_TODAY.format(day=today.day, today=today.model_dump_json())
-        return self.llm.complete(system, messages, max_tokens=2000)
+        try:
+            return self.llm.complete(system, messages, max_tokens=2000)
+        except Exception as exc:
+            if self.backup is None:
+                raise
+            log.warning("Chat: el proveedor principal falló (%s); se usa el plan B", str(exc)[:200])
+            return self.backup.complete(system, messages, max_tokens=2000)
