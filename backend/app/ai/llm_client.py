@@ -31,6 +31,11 @@ class LLMClient(ABC):
     def complete(self, system: str, messages: list[dict], max_tokens: int = 2000) -> str:
         """messages: [{"role": "user"|"assistant", "content": "..."}]"""
 
+    def describe_image(self, system: str, text: str, image_b64: str, mime: str,
+                       max_tokens: int = 1500) -> str:
+        """Responde a `text` mirando una imagen (base64 sin prefijo). Solo con modelos de visión."""
+        raise NotImplementedError("Este proveedor no admite imágenes")
+
 
 class AnthropicClient(LLMClient):
     def __init__(self, api_key: Optional[str] = None, model: Optional[str] = None,
@@ -54,6 +59,22 @@ class AnthropicClient(LLMClient):
         if getattr(resp, "stop_reason", None) == "max_tokens":
             raise ResponseTruncated("la respuesta se cortó al agotar los tokens de salida")
         return "".join(b.text for b in resp.content if b.type == "text")
+
+
+def _anthropic_image(self, system, text, image_b64, mime, max_tokens):
+    try:
+        resp = self._client.messages.create(
+            model=self._model, max_tokens=capped(max_tokens, self._cap), system=system,
+            messages=[{"role": "user", "content": [
+                {"type": "image", "source": {"type": "base64", "media_type": mime, "data": image_b64}},
+                {"type": "text", "text": text}]}],
+        )
+    except Exception as exc:
+        raise _tag(exc, f"modelo {self._model} en anthropic") from None
+    return "".join(b.text for b in resp.content if b.type == "text")
+
+
+AnthropicClient.describe_image = _anthropic_image  # type: ignore[method-assign]
 
 
 class OpenAIClient(LLMClient):
@@ -114,10 +135,35 @@ class OpenAIClient(LLMClient):
         return choice.message.content or ""
 
 
+def _openai_image(self, system, text, image_b64, mime, max_tokens):
+    full = [{"role": "system", "content": system},
+            {"role": "user", "content": [
+                {"type": "text", "text": text},
+                {"type": "image_url", "image_url": {"url": f"data:{mime};base64,{image_b64}"}}]}]
+    try:
+        return self._complete(full, capped(max_tokens, self._cap))
+    except Exception as exc:
+        raise _tag(exc, f"modelo {self._model} en {self._host}") from None
+
+
+OpenAIClient.describe_image = _openai_image  # type: ignore[method-assign]
+
+
 def get_llm_client() -> LLMClient:
     if settings.llm_provider == "openai":
         return OpenAIClient()
     return AnthropicClient()
+
+
+def get_vision_client() -> Optional[LLMClient]:
+    """Cliente con visión para la foto de la despensa: el segundo proveedor (p. ej. Gemini) si está
+    configurado; si no, el principal solo cuando es Anthropic. Con gpt-oss de Groq (solo texto): None."""
+    second = get_shopping_llm_client()
+    if second is not None:
+        return second
+    if settings.llm_provider == "anthropic":
+        return get_llm_client()
+    return None
 
 
 def get_shopping_llm_client() -> Optional[LLMClient]:

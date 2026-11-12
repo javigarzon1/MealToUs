@@ -17,6 +17,11 @@ export interface DayPlan { day: string; lunch: Dish; dinner: Dish }
 export interface WeeklyPlan { diet_type: DietType; target_kcal_per_day: number; days: DayPlan[] }
 export interface PantryItem { name: string; quantity?: string | null }
 export interface PantryItemOut extends PantryItem { id: number }
+export interface ScanItem {
+  name: string; quantity: number | null; unit: string | null;
+  confidence: "alta" | "media" | "baja"; needs_confirmation: boolean;
+}
+export interface ScanResult { status: "ok" | "retake"; message?: string | null; items: ScanItem[] }
 export interface UserPreferences {
   people: number; allergies: string[]; intolerances: string[]; dislikes: string[];
   /** Tope de kcal al día (comida + cena); null = sin límite */

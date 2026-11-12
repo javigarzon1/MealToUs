@@ -50,6 +50,7 @@ MealToUs es una aplicación web que **optimiza los alimentos que tienes en tu ne
 | 📅 **Menú de 7 días** | Planificación semanal con control de kcal (±10%) |
 | 🛒 **Lista de la compra** | Solo lo que falta, escalado al nº de personas |
 | 📖 **Recetas incluidas** | Receta de cada plato del menú |
+| 📷 **Foto de la despensa** | La IA reconoce los alimentos de una foto y tú los confirmas |
 | 🏪 **Enlaces a supermercados** | Mercadona, Carrefour, Hipercor, Aldi, Lidl, Dia |
 | 🧊 **Gestión de despensa** | Añade, lista y elimina alimentos |
 | 👤 **Preferencias personalizadas** | Personas, alergias, intolerancias, dislikes |
