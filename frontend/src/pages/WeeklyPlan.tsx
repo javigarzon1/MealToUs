@@ -8,6 +8,7 @@ import { WIDE_QUERY, useMediaQuery } from "../hooks/useMediaQuery";
 import { useChat } from "../state/ChatState";
 import { usePlan } from "../state/PlanState";
 import { WEEKDAYS_ES, dayEs, todayEs } from "../utils/days";
+import DaySummary, { MealMacros } from "../components/DaySummary";
 import NutritionSummary from "../components/NutritionSummary";
 import { downloadPdf } from "../utils/pdf";
 import { menuBlocks } from "../utils/pdfDocs";
@@ -119,16 +120,19 @@ export default function WeeklyPlan() {
                     <div className="meal__when">Comida</div>
                     <div className="meal__name">{d.lunch.name}</div>
                     <div className="meal__kcal">{d.lunch.kcal_per_serving} kcal</div>
+                    <MealMacros dish={d.lunch} />
                   </div>
                   <div>
                     <div className="meal__when">Cena</div>
                     <div className="meal__name">{d.dinner.name}</div>
                     <div className="meal__kcal">{d.dinner.kcal_per_serving} kcal</div>
+                    <MealMacros dish={d.dinner} />
                   </div>
                   <div className="day__total">
                     <div className="day__total-row"><span>Total del día</span><span>{total} kcal</span></div>
                     <div className="bar" role="img" aria-label={`${pct}% del objetivo diario`}><span style={{ width: `${pct}%` }} /></div>
                   </div>
+                  <DaySummary day={d} />
                   {isToday && (
                     <button
                       className="btn btn--small"

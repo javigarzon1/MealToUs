@@ -48,6 +48,8 @@ export default function NutritionSummary({ days }: { days: DayPlan[] }) {
         </div>
       )}
 
+      <details className="nutri__more">
+        <summary>Ver la tabla completa por comidas</summary>
       <div className="nutri__scroll">
         <table className="nutri__table">
           <thead>
@@ -73,6 +75,7 @@ export default function NutritionSummary({ days }: { days: DayPlan[] }) {
           ))}
         </table>
       </div>
+      </details>
     </section>
   );
 }
