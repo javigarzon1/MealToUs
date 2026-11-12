@@ -65,7 +65,7 @@ class Carrefour(SearchLinkProvider):
 
 class Hipercar(SearchLinkProvider):
     name = "hipercor"
-    search_url = "https://www.hipcor.es/supermercado/buscar/?term={q}"
+    search_url = "https://www.hipercor.es/supermercado/buscar/?term={q}"
 
     def build_links(self, items: list[ShoppingItem]) -> list[dict]:
         """Hipercor: enlaces de búsqueda con formato optimizado."""

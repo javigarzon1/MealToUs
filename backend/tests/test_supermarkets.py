@@ -61,6 +61,7 @@ def test_supermarket_links_hipercor(auth_client):
     data = response.json()
     assert data["supermarket"] == "hipercor"
     assert len(data["links"]) == 1
+    assert data["links"][0]["url"].startswith("https://www.hipercor.es/")
 
 
 def test_supermarket_links_invalid(auth_client):
