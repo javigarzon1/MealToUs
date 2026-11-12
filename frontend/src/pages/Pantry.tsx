@@ -3,8 +3,10 @@ import type { FormEvent } from "react";
 import { useNavigate } from "react-router-dom";
 import { api } from "../api/client";
 import { ErrorBox } from "../components/Feedback";
+import PhotoScan from "../components/PhotoScan";
 import { useAction } from "../hooks/useAction";
 import { usePlan } from "../state/PlanState";
+import type { PantryItem, PantryItemOut } from "../types";
 
 const SUGGESTIONS: [string, string][] = [
   ["Huevos", "🥚"], ["Leche", "🥛"], ["Arroz", "🍚"], ["Pasta", "🍝"], ["Pollo", "🍗"],
@@ -25,6 +27,16 @@ export default function Pantry() {
     if (state.pantry.some((p) => p.name.toLowerCase() === clean.toLowerCase())) return;
     const created = await run(() => api.addPantryItem({ name: clean, quantity: q?.trim() || null }));
     if (created) setPantry([...state.pantry, created]);
+  }
+
+  async function addMany(items: PantryItem[]): Promise<boolean> {
+    const added = await run(async () => {
+      const out: PantryItemOut[] = [];
+      for (const it of items) out.push(await api.addPantryItem(it));
+      return out;
+    });
+    if (added) setPantry([...state.pantry, ...added]);
+    return Boolean(added);
   }
 
   async function removeItem(id: number) {
@@ -58,6 +70,7 @@ export default function Pantry() {
 
       <div className="pantry">
         <div className="stack">
+          <PhotoScan pantry={state.pantry} onAdd={addMany} />
           <form className="form-block stack" onSubmit={onSubmit}>
             <label className="field">
               Alimento

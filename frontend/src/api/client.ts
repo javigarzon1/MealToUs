@@ -1,5 +1,5 @@
 import type {
-  AuthUser, ChatMessage, Dish, DishOptions, FavoriteMenu, HistoryEntry, PantryItem, PantryItemOut, PlanContext, ShoppingItem,
+  AuthUser, ChatMessage, Dish, DishOptions, FavoriteMenu, HistoryEntry, PantryItem, PantryItemOut, PlanContext, ScanResult, ShoppingItem,
   ShoppingResult, ShoppingTemplate, SupermarketLinks, TodayMenu, UserPreferences, WeeklyPlan,
 } from "../types";
 
@@ -66,6 +66,7 @@ export const api = {
   // --- Despensa y preferencias (por usuario) ---
   listPantry: () => request<PantryItemOut[]>("GET", "/pantry"),
   addPantryItem: (item: PantryItem) => post<PantryItemOut>("/pantry", item),
+  scanPantry: (image: string, mime: string) => post<ScanResult>("/pantry/scan", { image, mime }),
   deletePantryItem: (id: number) => request<void>("DELETE", `/pantry/${id}`),
   getPreferences: () => request<UserPreferences>("GET", "/preferences"),
   savePreferences: (prefs: UserPreferences) => post<UserPreferences>("/preferences", prefs),
