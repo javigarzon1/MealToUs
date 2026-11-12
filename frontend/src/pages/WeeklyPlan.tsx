@@ -94,7 +94,7 @@ export default function WeeklyPlan() {
         )}
       </div>
 
-      {planAction.loading && <Loading text="Diseñando tu semana… puede tardar hasta un minuto." />}
+      {planAction.loading && <Loading text="Diseñando tu semana… puede tardar hasta un minuto." quiz />}
       <ErrorBox message={planAction.error} />
 
       {plan && (
@@ -154,7 +154,7 @@ export default function WeeklyPlan() {
               Genera la lista de la compra (solo lo que te falta, para {state.preferences.people}{" "}
               {state.preferences.people === 1 ? "persona" : "personas"}) y las recetas.
             </p>
-            {shopAction.loading && <Loading text="Preparando la compra y las recetas… puede tardar hasta un minuto." />}
+            {shopAction.loading && <Loading text="Preparando la compra y las recetas… puede tardar hasta un minuto." quiz />}
             <ErrorBox message={shopAction.error} />
             <div className="actions">
               <button className="btn btn--primary" onClick={generateShopping} disabled={busy}>

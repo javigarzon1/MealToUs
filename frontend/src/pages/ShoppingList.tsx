@@ -280,7 +280,7 @@ export default function ShoppingList() {
             </button>
           </div>
         )}
-        {shopAction.loading && <Loading text="Preparando la compra y las recetas… puede tardar hasta un minuto." />}
+        {shopAction.loading && <Loading text="Preparando la compra y las recetas… puede tardar hasta un minuto." quiz />}
         <ErrorBox message={shopAction.error} />
 
         {shopping && byCategory.length === 0 && <p className="empty">Para tu menú no falta nada: ya lo tienes todo.</p>}
