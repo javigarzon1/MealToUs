@@ -70,8 +70,7 @@ class Hipercar(SearchLinkProvider):
 
 class Aldi(SearchLinkProvider):
     name = "aldi"
-    # Aldi España no tiene tienda online con buscador propio: se busca en su web desde el buscador
-    search_url = "https://www.google.com/search?q=site%3Aaldi.es+{q}"
+    search_url = "https://www.aldi.es/busqueda.html?query={q}"
 
 
 class Lidl(SearchLinkProvider):

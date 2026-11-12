@@ -96,7 +96,7 @@ EXPECTED_URLS = {
     "hipercor": "https://www.hipercor.es/",
     "lidl": "https://www.lidl.es/q/search?q=leche",
     "dia": "https://www.dia.es/search?q=leche",
-    "aldi": "https://www.google.com/search?q=site%3Aaldi.es+leche",
+    "aldi": "https://www.aldi.es/busqueda.html?query=leche",
 }
 
 
