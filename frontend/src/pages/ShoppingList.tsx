@@ -3,11 +3,12 @@ import type { FormEvent } from "react";
 import { useNavigate } from "react-router-dom";
 import { api } from "../api/client";
 import { fmt } from "../components/DishCard";
+import ItemUses from "../components/ItemUses";
 import { ErrorBox, Loading } from "../components/Feedback";
 import { useAction } from "../hooks/useAction";
 import { usePlan } from "../state/PlanState";
 import type { ShoppingItem, ShoppingTemplate, SupermarketLinks } from "../types";
-import { itemFor, normalize, recipesUsing, sameFood } from "../utils/match";
+import { itemFor, normalize, recipeFor, sameFood, usesInPlan } from "../utils/match";
 import { downloadPdf } from "../utils/pdf";
 import { shoppingBlocks } from "../utils/pdfDocs";
 
@@ -167,25 +168,23 @@ export default function ShoppingList() {
   const total = allItems.length;
   const pct = total ? Math.round((checked.size / total) * 100) : 0;
 
+  function openDish(dish: string) {
+    const r = recipeFor(dish, recipes);
+    if (r) showRecipe(recipes.indexOf(r));
+  }
+
   const row = (it: ShoppingItem, key: string, extra?: { onRemove: () => void }) => {
     const done = checked.has(key);
-    const uses = shopping ? recipesUsing(it.name, recipes) : [];
+    const uses = shopping ? usesInPlan(it.name, plan) : [];
     return (
       <div key={key} id={`item-${key}`} className={`check-row${done ? " is-done" : ""}${flash === key ? " is-flash" : ""}`}>
         <input id={key} className="check" type="checkbox" checked={done} onChange={() => toggle(key)} />
-        <label htmlFor={key}>{it.name}</label>
+        <ItemUses uses={uses} onOpenRecipe={openDish}>
+          <label htmlFor={key}>{it.name}</label>
+        </ItemUses>
         <span className="leaders__qty">{fmt(it.quantity)} {it.unit}</span>
         {extra && (
           <button className="icon-btn" onClick={extra.onRemove} aria-label={`Quitar ${it.name}`} title="Quitar">×</button>
-        )}
-        {uses.length > 0 && (
-          <div className="item-uses">
-            <span className="muted small">Para:</span>
-            {uses.slice(0, 3).map((r) => (
-              <button key={r} className="link-chip" onClick={() => showRecipe(r)}>{recipes[r].dish_name}</button>
-            ))}
-            {uses.length > 3 && <span className="muted small">+{uses.length - 3}</span>}
-          </div>
         )}
       </div>
     );

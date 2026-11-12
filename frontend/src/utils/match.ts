@@ -1,4 +1,5 @@
-import type { Recipe, ShoppingItem } from "../types";
+import type { Recipe, ShoppingItem, WeeklyPlan } from "../types";
+import { dayEs } from "./days";
 
 const STOP = new Set(["de", "del", "la", "el", "los", "las", "en", "con", "al", "y", "o", "para", "un", "una"]);
 
@@ -61,4 +62,20 @@ export function recipeFor(dishName: string, recipes: Recipe[]): Recipe | undefin
     const m = normalize(r.dish_name);
     return m === n || m.includes(n) || n.includes(m);
   });
+}
+
+export interface PlanUse { day: string; meal: "Comida" | "Cena"; dish: string }
+
+/** Comidas y días del menú que llevan este alimento. */
+export function usesInPlan(itemName: string, plan: WeeklyPlan | null): PlanUse[] {
+  if (!plan) return [];
+  const out: PlanUse[] = [];
+  for (const d of plan.days) {
+    for (const [meal, dish] of [["Comida", d.lunch], ["Cena", d.dinner]] as const) {
+      if (dish.ingredients.some((i) => sameFood(i.name, itemName))) {
+        out.push({ day: dayEs(d.day), meal, dish: dish.name });
+      }
+    }
+  }
+  return out;
 }
