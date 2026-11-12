@@ -75,7 +75,7 @@ def test_endpoint_scan_errores(auth_client, monkeypatch):
     monkeypatch.setattr("app.api.pantry.get_vision_client", lambda: FakeVision([]))
     assert auth_client.post("/api/pantry/scan", json={"image": PIXEL, "mime": "image/gif"}).status_code == 400
     assert auth_client.post("/api/pantry/scan", json={"image": "%%%"}).status_code == 400
-    big = "A" * (6 * 1024 * 1024)
+    big = "A" * (8 * 1024 * 1024)
     assert auth_client.post("/api/pantry/scan", json={"image": big}).status_code == 413
 
 
