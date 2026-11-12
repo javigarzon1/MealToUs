@@ -90,3 +90,21 @@ def test_supermarket_links_empty_items(auth_client):
     assert response.status_code == 200
     data = response.json()
     assert data["links"] == []
+
+EXPECTED_URLS = {
+    "carrefour": "https://www.carrefour.es/?query=leche",
+    "hipercor": "https://www.hipercor.es/",
+    "lidl": "https://www.lidl.es/q/search?q=leche",
+    "dia": "https://www.dia.es/search?q=leche",
+    "aldi": "https://www.google.com/search?q=site%3Aaldi.es+leche",
+}
+
+
+def test_supermarket_links_todas_las_cadenas(auth_client):
+    """Cada cadena genera el enlace de búsqueda esperado (solo el nombre del producto)."""
+    items = [_make_shopping_item("leche", 1, "l", "lácteos")]
+    for name, expected in EXPECTED_URLS.items():
+        res = auth_client.post("/api/shopping/supermarket-links", json={"supermarket": name, "items": items})
+        assert res.status_code == 200, name
+        url = res.json()["links"][0]["url"]
+        assert url.startswith(expected) if name == "hipercor" else url == expected, (name, url)

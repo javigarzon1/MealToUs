@@ -51,16 +51,7 @@ class Mercadona(SearchLinkProvider):
 
 class Carrefour(SearchLinkProvider):
     name = "carrefour"
-    search_url = "https://www.carrefour.es/search-results?q={q}"
-
-    def build_links(self, items: list[ShoppingItem]) -> list[dict]:
-        """Carrefour: enlaces de búsqueda con formato optimizado."""
-        links = []
-        for item in items:
-            query = f"{item.name} {item.category}" if item.category else item.name
-            url = self.search_url.format(q=quote_plus(query))
-            links.append({"item": item.name, "url": url})
-        return links
+    search_url = "https://www.carrefour.es/?query={q}"
 
 
 class Hipercar(SearchLinkProvider):
@@ -77,7 +68,23 @@ class Hipercar(SearchLinkProvider):
         return links
 
 
+class Aldi(SearchLinkProvider):
+    name = "aldi"
+    # Aldi España no tiene tienda online con buscador propio: se busca en su web desde el buscador
+    search_url = "https://www.google.com/search?q=site%3Aaldi.es+{q}"
+
+
+class Lidl(SearchLinkProvider):
+    name = "lidl"
+    search_url = "https://www.lidl.es/q/search?q={q}"
+
+
+class Dia(SearchLinkProvider):
+    name = "dia"
+    search_url = "https://www.dia.es/search?q={q}"
+
+
 # Diccionario de proveedores disponibles
 PROVIDERS: dict[str, SupermarketProvider] = {
-    p.name: p for p in (Mercadona(), Carrefour(), Hipercar())
+    p.name: p for p in (Mercadona(), Carrefour(), Hipercar(), Aldi(), Lidl(), Dia())
 }

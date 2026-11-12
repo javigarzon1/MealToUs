@@ -16,6 +16,9 @@ const SUPERMARKETS = [
   { id: "mercadona", label: "Mercadona" },
   { id: "carrefour", label: "Carrefour" },
   { id: "hipercor", label: "Hipercor" },
+  { id: "aldi", label: "Aldi" },
+  { id: "lidl", label: "Lidl" },
+  { id: "dia", label: "Dia" },
 ];
 
 const UNITS = ["ud", "g", "kg", "ml", "l", "paquete"];
@@ -328,7 +331,7 @@ export default function ShoppingList() {
                 <li key={l.item}>
                   <span>{l.item}</span>
                   <a href={l.url} target="_blank" rel="noreferrer noopener">
-                    Buscar en {links.supermarket}
+                    Buscar en {SUPERMARKETS.find((s) => s.id === links.supermarket)?.label ?? links.supermarket}
                   </a>
                 </li>
               ))}

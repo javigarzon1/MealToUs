@@ -50,7 +50,7 @@ MealToUs es una aplicación web que **optimiza los alimentos que tienes en tu ne
 | 📅 **Menú de 7 días** | Planificación semanal con control de kcal (±10%) |
 | 🛒 **Lista de la compra** | Solo lo que falta, escalado al nº de personas |
 | 📖 **Recetas incluidas** | Receta de cada plato del menú |
-| 🏪 **Enlaces a supermercados** | Mercadona, Carrefour, Hipercor |
+| 🏪 **Enlaces a supermercados** | Mercadona, Carrefour, Hipercor, Aldi, Lidl, Dia |
 | 🧊 **Gestión de despensa** | Añade, lista y elimina alimentos |
 | 👤 **Preferencias personalizadas** | Personas, alergias, intolerancias, dislikes |
 | 🔐 **Autenticación** | Registro, login, forgot password, reset password |
@@ -117,7 +117,7 @@ MealToUs/
 │   │   ├── schemas/        # Contratos Pydantic
 │   │   ├── api/            # Endpoints: auth, pantry, menus, shopping
 │   │   ├── ai/             # Agente: llm_client, prompts, agent, validators
-│   │   ├── integrations/   # Supermercados: Mercadona, Carrefour, Hipercor
+│   │   ├── integrations/   # Supermercados: Mercadona, Carrefour, Hipercor, Aldi, Lidl, Dia
 │   │   └── services/       # Lógica de negocio sin LLM
 │   └── tests/
 └── frontend/
@@ -222,7 +222,7 @@ El proyecto utiliza **5 agentes especializados** para desarrollo en paralelo:
 | `db-endpoints` | `models/`, `schemas/`, `api/`, `db/` | Tablas, schemas, endpoints |
 | `backend-python` | `ai/`, `services/`, `integrations/`, `core/` | Lógica IA, prompts, validadores |
 | `ia-agente` | `ai/agent.py`, `prompts.py`, `validators.py` | Flujo completo de IA |
-| `supermercados` | `integrations/supermarkets/` | Mercadona, Carrefour, Hipercor |
+| `supermercados` | `integrations/supermarkets/` | Mercadona, Carrefour, Hipercor, Aldi, Lidl, Dia |
 | `preferencias-despensa` | `models/pantry.py`, `schemas/pantry.py` | Gestión de despensa |
 
 ---
