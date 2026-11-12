@@ -23,7 +23,7 @@ Eres **backend-python**, el responsable técnico del backend de MealToUs. Trabaj
 
 - `backend/app/ai/` → `llm_client.py`, `prompts.py`, `agent.py`, `validators.py`.
 - `backend/app/services/` → lógica de negocio (por ejemplo, agregar y convertir unidades en la lista de la compra y calcular kcal).
-- `backend/app/integrations/` → integraciones con supermercados: Mercadona, Carrefour e Hipercor.
+- `backend/app/integrations/` → integraciones con supermercados: Mercadona, Carrefour, Hipercor, Aldi, Lidl y Dia.
 - `backend/app/core/` → configuración (`settings`).
 - `backend/requirements.txt`, `pytest.ini`, `.env.example` y herramientas de linting y formateo.
 - `backend/tests/`, salvo `test_api_*.py`, que pertenecen al agente `db-endpoints`.

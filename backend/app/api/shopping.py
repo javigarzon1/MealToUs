@@ -8,7 +8,7 @@ router = APIRouter(prefix="/shopping", tags=["shopping"])
 
 
 class LinksRequest(BaseModel):
-    supermarket: str  # mercadona | carrefour | hipercor
+    supermarket: str  # mercadona | carrefour | hipercor | aldi | lidl | dia
     items: list[ShoppingItem]
 
 
