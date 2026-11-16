@@ -1,5 +1,5 @@
 import { useEffect, useRef } from "react";
-import { Navigate, NavLink, Route, Routes } from "react-router-dom";
+import { Link, Navigate, NavLink, Route, Routes } from "react-router-dom";
 import Pantry from "./pages/Pantry";
 import Preferences from "./pages/Preferences";
 import LunchOptions from "./pages/LunchOptions";
@@ -60,7 +60,9 @@ function Shell() {
     <>
       <header className="topbar" ref={topbar}>
         <div className="topbar__inner">
-          <Brand />
+          <Link to="/" className="brand-link" aria-label="MealToUs: volver al inicio">
+            <Brand />
+          </Link>
           <nav className="journey" aria-label="Pasos">
             <ol className="journey__list">
               {steps.map((s, i) => (
